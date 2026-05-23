@@ -1,0 +1,8 @@
+dist/
+deploy/
+scripts/
+*.png
+*.zip
+*.tar
+*.tgz
+.DS_Store

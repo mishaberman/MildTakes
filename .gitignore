@@ -1,0 +1,11 @@
+.DS_Store
+.env
+.env.*
+!.env.example
+dist/
+deploy/
+*.png
+*.zip
+*.tar
+*.tgz
+node_modules/
