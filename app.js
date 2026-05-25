@@ -9,6 +9,7 @@ const CONFIG = {
   gaMeasurementId: "",
   metaPixelId: "",
   siteUrl: "",
+  useRemoteRounds: false,
   ...(window.MILD_TAKES_CONFIG || {})
 };
 const online = {
@@ -25,47 +26,47 @@ const online = {
 const puzzles = [
   {
     id: "group-chat-crimes",
-    category: "Social survival",
+    category: "Group chat court",
     sponsor: "Group chats are a premium habitat.",
-    prompt: "Sort these from quietly annoying to group-chat criminal.",
-    left: "Forgivable",
-    right: "Unforgivable",
+    prompt: "Rank these group-chat moves from least annoying to most annoying.",
+    left: "Least annoying",
+    right: "Most annoying",
     cards: [
-      { id: "k", icon: "K", title: 'Replying "k"', detail: "Cold enough to change the room.", score: 58 },
-      { id: "voice", icon: "♪", title: "A 4-minute voice note", detail: "The podcast nobody subscribed to.", score: 72 },
-      { id: "read", icon: "R", title: "Reading and vanishing", detail: "Visible, silent, powerful.", score: 64 },
-      { id: "spoiler", icon: "!", title: "Spoiling the finale", detail: "Friendship paperwork begins here.", score: 94 },
-      { id: "react", icon: "+", title: "Only reacting with a thumb", detail: "Efficient or emotionally haunted?", score: 42 }
+      { id: "react", icon: "+", title: "Only reacting, never replying", detail: "Technically present. Emotionally elsewhere.", score: 34 },
+      { id: "k", icon: "K", title: 'Replying "k"', detail: "One letter with courtroom energy.", score: 58 },
+      { id: "read", icon: "R", title: "Reading and disappearing", detail: "Everyone saw the receipt.", score: 66 },
+      { id: "voice", icon: "V", title: "Sending a 4-minute voice note", detail: "A podcast with no speed control.", score: 76 },
+      { id: "spoiler", icon: "!", title: "Spoiling a new episode", detail: "Now the group needs a recovery plan.", score: 96 }
     ]
   },
   {
     id: "weekend-luxury",
-    category: "Tiny luxury",
+    category: "Tiny wins",
     sponsor: "A soft landing for your weekend brand.",
-    prompt: "Sort these from nice to life-restoring.",
+    prompt: "Rank these small weekend wins from nice to day-saving.",
     left: "Nice",
-    right: "Restorative",
+    right: "Day-saving",
     cards: [
-      { id: "laundry", icon: "L", title: "Fresh sheets", detail: "Hotel brain, home budget.", score: 88 },
-      { id: "coffee", icon: "C", title: "Perfect coffee", detail: "The day gets one good handshake.", score: 74 },
-      { id: "silence", icon: "S", title: "An empty inbox", detail: "Suspicious, but gorgeous.", score: 92 },
-      { id: "parking", icon: "P", title: "A front parking spot", detail: "A small civic miracle.", score: 56 },
-      { id: "snack", icon: "N", title: "Finding a forgotten snack", detail: "Past-you did one thing right.", score: 48 }
+      { id: "snack", icon: "N", title: "Finding a forgotten snack", detail: "Past-you left a tiny gift.", score: 30 },
+      { id: "parking", icon: "P", title: "Getting the closest parking spot", detail: "A small public miracle.", score: 48 },
+      { id: "coffee", icon: "C", title: "Making perfect coffee", detail: "The day starts with one good decision.", score: 64 },
+      { id: "laundry", icon: "L", title: "Fresh sheets at bedtime", detail: "Hotel feeling, home budget.", score: 84 },
+      { id: "silence", icon: "S", title: "No plans and no guilt", detail: "The calendar finally behaves.", score: 94 }
     ]
   },
   {
     id: "minor-chaos",
     category: "Daily drama",
     sponsor: "Chaos pairs well with breakfast.",
-    prompt: "Sort these from shrug to tiny disaster.",
-    left: "Shrug",
-    right: "Tiny disaster",
+    prompt: "Rank these everyday problems from mildly annoying to day-ruining.",
+    left: "Mildly annoying",
+    right: "Day-ruining",
     cards: [
-      { id: "charger", icon: "B", title: "Phone at 3%", detail: "Modern suspense.", score: 77 },
-      { id: "wifi", icon: "W", title: "Wi-Fi drops mid-call", detail: "You freeze in your least flattering face.", score: 83 },
-      { id: "lid", icon: "D", title: "Loose coffee lid", detail: "A sleeve-based emergency.", score: 70 },
-      { id: "password", icon: "*", title: "Password reset loop", detail: "Identity denied by seven robots.", score: 91 },
-      { id: "crumbs", icon: "T", title: "Toast crumbs in bed", detail: "A quiet structural failure.", score: 50 }
+      { id: "crumbs", icon: "T", title: "Toast crumbs in bed", detail: "Bad, but localized.", score: 38 },
+      { id: "lid", icon: "D", title: "Loose coffee lid", detail: "Your shirt enters the story.", score: 62 },
+      { id: "charger", icon: "B", title: "Phone at 3%", detail: "Modern suspense in your pocket.", score: 72 },
+      { id: "wifi", icon: "W", title: "Wi-Fi drops mid-call", detail: "You freeze at the worst possible face.", score: 84 },
+      { id: "password", icon: "*", title: "Password reset loop", detail: "Identity denied by several screens.", score: 94 }
     ]
   },
   {
@@ -387,75 +388,75 @@ const puzzles = [
     id: "road-trip",
     category: "Road trip law",
     sponsor: "Car snacks deserve a media plan.",
-    prompt: "Sort these road trip moves from acceptable to mutiny.",
-    left: "Acceptable",
+    prompt: "Rank these road trip moves from forgivable to car-wide mutiny.",
+    left: "Forgivable",
     right: "Mutiny",
     cards: [
-      { id: "playlist", icon: "P", title: "Skipping songs early", detail: "DJ power without restraint.", score: 76 },
-      { id: "bathroom", icon: "B", title: "Bathroom after leaving", detail: "Timing as sabotage.", score: 84 },
-      { id: "snacks", icon: "S", title: "Opening loud snacks", detail: "Crinkle-based ambience.", score: 48 },
-      { id: "directions", icon: "D", title: "Questioning GPS", detail: "The passenger becomes a prophet.", score: 62 },
-      { id: "temperature", icon: "T", title: "Changing temperature", detail: "Climate war in one cabin.", score: 70 }
+      { id: "snacks", icon: "S", title: "Opening loud snacks", detail: "Annoying for ten seconds, worth it later.", score: 34 },
+      { id: "directions", icon: "D", title: "Questioning the GPS", detail: "The passenger becomes a prophet.", score: 56 },
+      { id: "temperature", icon: "T", title: "Changing the car temperature", detail: "Climate politics in one cabin.", score: 68 },
+      { id: "playlist", icon: "P", title: "Skipping songs after 20 seconds", detail: "DJ power with no restraint.", score: 78 },
+      { id: "bathroom", icon: "B", title: "Needing a bathroom right after leaving", detail: "The road trip loses five minutes immediately.", score: 90 }
     ]
   },
   {
     id: "kid-birthday",
     category: "Party politics",
     sponsor: "Family brands can behave here.",
-    prompt: "Sort these kid-party moments from cute to too much.",
-    left: "Cute",
+    prompt: "Rank these kid-party choices from sweet to too much.",
+    left: "Sweet",
     right: "Too much",
     cards: [
-      { id: "theme", icon: "Th", title: "Full theme", detail: "Commitment with frosting.", score: 50 },
-      { id: "gift", icon: "G", title: "Oversized gift", detail: "A living-room logistics issue.", score: 76 },
-      { id: "cake", icon: "C", title: "Second cake", detail: "Joy, doubled and weaponized.", score: 68 },
-      { id: "parents", icon: "P", title: "Parents must stay", detail: "Saturday is now booked.", score: 88 },
-      { id: "confetti", icon: "*", title: "Loose confetti", detail: "A six-month cleanup decision.", score: 94 }
+      { id: "theme", icon: "Th", title: "Matching plates and napkins", detail: "A little effort, nobody gets hurt.", score: 22 },
+      { id: "cake", icon: "C", title: "A second cake", detail: "Generous, but the sugar math changes.", score: 56 },
+      { id: "gift", icon: "G", title: "A gift bigger than the kid", detail: "Now someone has to fit it in a car.", score: 72 },
+      { id: "parents", icon: "P", title: "Parents are required to stay", detail: "The adults just lost their afternoon.", score: 86 },
+      { id: "confetti", icon: "*", title: "Loose glitter or confetti", detail: "The house will remember this party forever.", score: 96 }
     ]
   },
   {
     id: "pet-behavior",
-    category: "Pet jury",
+    category: "Pet owner panic",
     sponsor: "Pet brands can sponsor the verdict.",
-    prompt: "Sort these pet behaviors from adorable to expensive.",
-    left: "Adorable",
-    right: "Expensive",
+    prompt: "Rank these pet-owner moments from cute problem to full panic.",
+    left: "Cute problem",
+    right: "Full panic",
     cards: [
-      { id: "zoomies", icon: "Z", title: "Midnight zoomies", detail: "Athletics with no calendar.", score: 42 },
-      { id: "shoe", icon: "S", title: "Chewed shoe", detail: "Fashion becomes evidence.", score: 78 },
-      { id: "couch", icon: "C", title: "Scratched couch", detail: "Interior design by claws.", score: 92 },
-      { id: "stare", icon: "E", title: "Silent staring", detail: "Cute, then judicial.", score: 34 },
-      { id: "vet", icon: "V", title: "Mystery limp", detail: "The invoice is already stretching.", score: 96 }
+      { id: "laundry", icon: "L", title: "Sleeping on clean laundry", detail: "Annoying, but unfairly adorable.", score: 18 },
+      { id: "zoomies", icon: "Z", title: "Midnight zoomies", detail: "Loud, harmless athletics.", score: 36 },
+      { id: "drink", icon: "D", title: "Knocking over a full drink", detail: "Now the floor is involved.", score: 58 },
+      { id: "couch", icon: "C", title: "Scratching the couch arm", detail: "Furniture damage with eye contact.", score: 78 },
+      { id: "vet", icon: "V", title: "Sudden limp at 10 PM", detail: "Everyone is Googling and nobody is calm.", score: 96 }
     ]
   },
   {
     id: "coffee-shop",
     category: "Coffee shop law",
     sponsor: "A natural home for local cafes.",
-    prompt: "Sort these coffee shop moves from fine to main character.",
-    left: "Fine",
-    right: "Main character",
+    prompt: "Rank these coffee shop behaviors from totally fine to please stop.",
+    left: "Totally fine",
+    right: "Please stop",
     cards: [
-      { id: "laptop", icon: "L", title: "Laptop for hours", detail: "Rent paid in lattes.", score: 68 },
-      { id: "call", icon: "C", title: "Taking a call", detail: "The whole shop joins briefly.", score: 82 },
-      { id: "custom", icon: "12", title: "Huge custom order", detail: "A recipe with footnotes.", score: 74 },
-      { id: "outlet", icon: "O", title: "Guarding an outlet", detail: "Power has a bodyguard.", score: 58 },
-      { id: "beans", icon: "B", title: "Asking about every bean", detail: "Curiosity with a line behind it.", score: 62 }
+      { id: "beans", icon: "B", title: "Asking one menu question", detail: "Normal curiosity, quick answer.", score: 20 },
+      { id: "laptop", icon: "L", title: "Working on a laptop for one hour", detail: "Fair if coffee is involved.", score: 42 },
+      { id: "outlet", icon: "O", title: "Saving a table before ordering", detail: "A mild land grab.", score: 62 },
+      { id: "custom", icon: "8", title: "Ordering eight custom changes", detail: "The drink becomes a spreadsheet.", score: 76 },
+      { id: "call", icon: "C", title: "Taking a speakerphone call", detail: "The whole shop gets invited.", score: 94 }
     ]
   },
   {
     id: "holiday-hosting",
     category: "Hosting heat",
     sponsor: "Holiday brands can earn their keep.",
-    prompt: "Sort these hosting moments from cozy to meltdown.",
-    left: "Cozy",
-    right: "Meltdown",
+    prompt: "Rank these hosting problems from small fix to night-ruiner.",
+    left: "Small fix",
+    right: "Night-ruiner",
     cards: [
-      { id: "chairs", icon: "Ch", title: "Not enough chairs", detail: "Architecture meets family politics.", score: 72 },
-      { id: "oven", icon: "O", title: "Oven schedule conflict", detail: "Every dish wants the spotlight.", score: 86 },
-      { id: "topic", icon: "T", title: "Dangerous dinner topic", detail: "Someone opened the group chat aloud.", score: 94 },
-      { id: "playlist", icon: "P", title: "Perfect playlist", detail: "Mood management, achieved.", score: 28 },
-      { id: "dessert", icon: "D", title: "Forgot dessert", detail: "The sweet ending filed a complaint.", score: 80 }
+      { id: "ice", icon: "I", title: "Running out of ice", detail: "Fixable if someone will make the run.", score: 34 },
+      { id: "chairs", icon: "Ch", title: "Not enough chairs", detail: "Dinner becomes musical chairs.", score: 58 },
+      { id: "oven", icon: "O", title: "The oven is already full", detail: "Every dish needs the same 25 minutes.", score: 76 },
+      { id: "guest", icon: "+1", title: "A surprise extra guest", detail: "The place settings have questions.", score: 84 },
+      { id: "topic", icon: "T", title: "Someone starts a risky dinner topic", detail: "Now dessert needs security.", score: 96 }
     ]
   }
 ];
@@ -468,6 +469,7 @@ const state = {
   order: [],
   locked: false,
   result: null,
+  selectedCardId: "",
   archiveMode: false
 };
 
@@ -479,8 +481,11 @@ const els = {
   categoryLabel: document.querySelector("#categoryLabel"),
   sponsorLine: document.querySelector("#sponsorLine"),
   promptTitle: document.querySelector("#promptTitle"),
+  promptTease: document.querySelector("#promptTease"),
   axisLeft: document.querySelector("#axisLeft"),
   axisRight: document.querySelector("#axisRight"),
+  rankStartLabel: document.querySelector("#rankStartLabel"),
+  rankEndLabel: document.querySelector("#rankEndLabel"),
   takeList: document.querySelector("#takeList"),
   submitButton: document.querySelector("#submitButton"),
   resetButton: document.querySelector("#resetButton"),
@@ -490,8 +495,11 @@ const els = {
   resultTitle: document.querySelector("#resultTitle"),
   resultText: document.querySelector("#resultText"),
   shareGrid: document.querySelector("#shareGrid"),
+  shareLine: document.querySelector("#shareLine"),
+  resultBurst: document.querySelector("#resultBurst"),
   shareButton: document.querySelector("#shareButton"),
   copyButton: document.querySelector("#copyButton"),
+  socialShareRow: document.querySelector("#socialShareRow"),
   copyStatus: document.querySelector("#copyStatus"),
   shareTextArea: document.querySelector("#shareTextArea"),
   authStatus: document.querySelector("#authStatus"),
@@ -499,8 +507,15 @@ const els = {
   signOutButton: document.querySelector("#signOutButton"),
   adminButton: document.querySelector("#adminButton"),
   authDialog: document.querySelector("#authDialog"),
+  authTitle: document.querySelector("#authTitle"),
+  authDescription: document.querySelector("#authDescription"),
   closeAuth: document.querySelector("#closeAuth"),
   authMessage: document.querySelector("#authMessage"),
+  oauthGrid: document.querySelector("#oauthGrid"),
+  accountCard: document.querySelector("#accountCard"),
+  accountAvatar: document.querySelector("#accountAvatar"),
+  accountName: document.querySelector("#accountName"),
+  accountEmail: document.querySelector("#accountEmail"),
   onlineStatus: document.querySelector("#onlineStatus"),
   leaderboardList: document.querySelector("#leaderboardList"),
   publicMetrics: document.querySelector("#publicMetrics"),
@@ -522,6 +537,9 @@ const els = {
   bestStat: document.querySelector("#bestStat"),
   streakStat: document.querySelector("#streakStat")
 };
+
+let reorderSession = null;
+let suppressNextCardClick = false;
 
 function formatDateKey(date) {
   const year = date.getFullYear();
@@ -646,7 +664,7 @@ function setupDailyPuzzle(puzzleIndex = null) {
   const puzzle = puzzles[((resolvedIndex % puzzles.length) + puzzles.length) % puzzles.length];
   const saved = loadSavedState();
   const todayKey = puzzleIndex === null ? formatDateKey(today) : `archive-${puzzle.id}`;
-  const savedResult = saved.results?.[todayKey];
+  const savedResult = getSavedResultForPuzzle(saved, todayKey, puzzle);
 
   state.puzzle = puzzle;
   state.dailyNumber = puzzleIndex === null ? dailyNumber : resolvedIndex + 1;
@@ -660,6 +678,7 @@ function setupDailyPuzzle(puzzleIndex = null) {
     );
   state.locked = Boolean(savedResult);
   state.result = savedResult || null;
+  state.selectedCardId = "";
   state.archiveMode = puzzleIndex !== null;
 
   els.dateLabel.textContent = puzzleIndex === null ? prettyDate(today) : "Archive round";
@@ -674,6 +693,21 @@ function getTargetOrder() {
   return [...state.puzzle.cards].sort((a, b) => a.score - b.score).map((card) => card.id);
 }
 
+function getPuzzleContentKey(puzzle) {
+  return [
+    puzzle.id,
+    puzzle.prompt,
+    puzzle.left,
+    puzzle.right,
+    puzzle.cards.map((card) => `${card.id}:${card.title}:${card.score}`).join("|")
+  ].join("::");
+}
+
+function getSavedResultForPuzzle(saved, key, puzzle) {
+  const result = saved.results?.[key];
+  return result?.contentKey === getPuzzleContentKey(puzzle) ? result : null;
+}
+
 function render() {
   const stats = getStats();
   els.dailyNumber.textContent = `#${String(state.dailyNumber).padStart(3, "0")}`;
@@ -682,8 +716,11 @@ function render() {
   els.categoryLabel.textContent = state.puzzle.category;
   els.sponsorLine.textContent = state.puzzle.sponsor;
   els.promptTitle.textContent = state.puzzle.prompt;
+  els.promptTease.textContent = `Put the card closest to "${state.puzzle.left}" in spot 1. Put the card closest to "${state.puzzle.right}" in spot 5.`;
   els.axisLeft.textContent = state.puzzle.left;
   els.axisRight.textContent = state.puzzle.right;
+  els.rankStartLabel.textContent = state.puzzle.left;
+  els.rankEndLabel.textContent = state.puzzle.right;
   els.submitButton.disabled = state.locked;
   els.resetButton.disabled = state.locked;
   els.submitButton.textContent = state.locked ? "Locked" : "Lock it in";
@@ -708,13 +745,13 @@ function renderCards() {
   state.order.forEach((cardId, index) => {
     const card = getCard(cardId);
     const item = document.createElement("li");
-    item.className = "take-card";
-    item.draggable = !state.locked;
+    item.className = `take-card ${state.selectedCardId === card.id ? "is-selected" : ""}`;
+    item.draggable = false;
     item.dataset.id = card.id;
 
-    const icon = document.createElement("span");
-    icon.className = "rank-icon";
-    icon.textContent = card.icon;
+    const slot = document.createElement("span");
+    slot.className = "rank-slot";
+    slot.innerHTML = `<span>${index + 1}</span>`;
 
     const copy = document.createElement("span");
     copy.className = "take-copy";
@@ -731,7 +768,7 @@ function renderCards() {
     upButton.disabled = state.locked || index === 0;
     downButton.disabled = state.locked || index === state.order.length - 1;
 
-    item.append(icon, copy, controls);
+    item.append(slot, copy, controls);
     els.takeList.append(item);
   });
 }
@@ -742,7 +779,146 @@ function moveCard(cardId, direction) {
   const nextIndex = currentIndex + direction;
   if (nextIndex < 0 || nextIndex >= state.order.length) return;
   [state.order[currentIndex], state.order[nextIndex]] = [state.order[nextIndex], state.order[currentIndex]];
+  state.selectedCardId = "";
   renderCards();
+}
+
+function swapCards(firstId, secondId) {
+  if (state.locked || firstId === secondId) return;
+  const firstIndex = state.order.indexOf(firstId);
+  const secondIndex = state.order.indexOf(secondId);
+  if (firstIndex < 0 || secondIndex < 0) return;
+  [state.order[firstIndex], state.order[secondIndex]] = [state.order[secondIndex], state.order[firstIndex]];
+  state.selectedCardId = "";
+  renderCards();
+}
+
+function resetReorderListeners() {
+  window.removeEventListener("pointermove", updateReorderPointer);
+  window.removeEventListener("pointerup", finishReorderPointer);
+  window.removeEventListener("pointercancel", cancelReorderPointer);
+}
+
+function startReorderPointer(event) {
+  if (reorderSession) return;
+  if (state.locked || event.target.closest("[data-move]")) return;
+  if (event.pointerType === "mouse" && event.button !== 0) return;
+  const item = event.target.closest(".take-card");
+  if (!item || !els.takeList.contains(item)) return;
+
+  reorderSession = {
+    dragging: false,
+    id: item.dataset.id,
+    item,
+    pointerId: event.pointerId,
+    startX: event.clientX,
+    startY: event.clientY
+  };
+  window.addEventListener("pointermove", updateReorderPointer, { passive: false });
+  window.addEventListener("pointerup", finishReorderPointer);
+  window.addEventListener("pointercancel", cancelReorderPointer);
+}
+
+function beginReorderDrag(event) {
+  const session = reorderSession;
+  if (!session) return;
+  const rect = session.item.getBoundingClientRect();
+  const placeholder = document.createElement("li");
+  placeholder.className = "take-card drag-placeholder";
+  placeholder.setAttribute("aria-hidden", "true");
+  placeholder.style.height = `${rect.height}px`;
+      placeholder.innerHTML = `
+    <span class="rank-slot"><span>+</span></span>
+    <span class="take-copy"><strong>Drop here</strong><span>Release to place this take.</span></span>
+  `;
+
+  session.dragging = true;
+  session.offsetX = event.clientX - rect.left;
+  session.offsetY = event.clientY - rect.top;
+  session.placeholder = placeholder;
+  session.item.after(placeholder);
+
+  session.item.classList.add("is-dragging");
+  Object.assign(session.item.style, {
+    height: `${rect.height}px`,
+    left: `${rect.left}px`,
+    position: "fixed",
+    top: `${rect.top}px`,
+    width: `${rect.width}px`,
+    zIndex: "1000"
+  });
+  document.body.append(session.item);
+  document.body.classList.add("is-reordering");
+  els.takeList.classList.add("is-reordering");
+  state.selectedCardId = "";
+  suppressNextCardClick = true;
+}
+
+function moveReorderPlaceholder(clientY) {
+  const session = reorderSession;
+  if (!session?.placeholder) return;
+  const cards = [...els.takeList.querySelectorAll(".take-card:not(.drag-placeholder)")];
+  const nextCard = cards.find((card) => {
+    const rect = card.getBoundingClientRect();
+    return clientY < rect.top + rect.height / 2;
+  });
+  els.takeList.insertBefore(session.placeholder, nextCard || null);
+}
+
+function updateReorderPointer(event) {
+  const session = reorderSession;
+  if (!session || event.pointerId !== session.pointerId) return;
+  const distance = Math.hypot(event.clientX - session.startX, event.clientY - session.startY);
+  if (!session.dragging && distance < 8) return;
+  event.preventDefault();
+
+  if (!session.dragging) beginReorderDrag(event);
+  if (!session.dragging) return;
+
+  session.item.style.left = `${event.clientX - session.offsetX}px`;
+  session.item.style.top = `${event.clientY - session.offsetY}px`;
+  moveReorderPlaceholder(event.clientY);
+
+  if (event.clientY < 72) window.scrollBy(0, -10);
+  if (event.clientY > window.innerHeight - 72) window.scrollBy(0, 10);
+}
+
+function finishReorderPointer(event) {
+  const session = reorderSession;
+  if (!session || event.pointerId !== session.pointerId) return;
+  resetReorderListeners();
+
+  if (session.dragging) {
+    const nextOrder = [...els.takeList.children]
+      .map((item) => (item === session.placeholder ? session.id : item.dataset.id))
+      .filter(Boolean);
+    state.order = nextOrder;
+    session.item.remove();
+    session.placeholder.remove();
+    document.body.classList.remove("is-reordering");
+    els.takeList.classList.remove("is-reordering");
+    renderCards();
+    setTimeout(() => {
+      suppressNextCardClick = false;
+    }, 350);
+  }
+
+  reorderSession = null;
+}
+
+function cancelReorderPointer(event) {
+  const session = reorderSession;
+  if (!session || event.pointerId !== session.pointerId) return;
+  resetReorderListeners();
+  if (session.dragging) {
+    session.item.remove();
+    session.placeholder.remove();
+    document.body.classList.remove("is-reordering");
+    els.takeList.classList.remove("is-reordering");
+    renderCards();
+  }
+  suppressNextCardClick = false;
+  reorderSession = null;
 }
 
 function resetOrder() {
@@ -751,6 +927,7 @@ function resetOrder() {
     state.puzzle.cards.map((card) => card.id),
     `${state.todayKey}-${state.puzzle.id}`
   );
+  state.selectedCardId = "";
   renderCards();
 }
 
@@ -777,12 +954,15 @@ async function lockIn() {
   results[state.todayKey] = {
     ...result,
     puzzleId: state.puzzle.id,
+    contentKey: getPuzzleContentKey(state.puzzle),
     playedAt: new Date().toISOString()
   };
   saveState({ ...saved, results });
   state.locked = true;
   state.result = results[state.todayKey];
+  state.selectedCardId = "";
   render();
+  celebrateResult(result.score);
   track("round_completed", {
     round_id: state.remoteRoundId || state.puzzle.id,
     play_date: state.todayKey,
@@ -818,6 +998,10 @@ function renderResult(result) {
   els.meterFill.style.strokeDashoffset = String(circumference - (circumference * result.score) / 100);
   els.resultTitle.textContent = title;
   els.resultText.textContent = `${text} You placed ${result.exact} of 5 cards in the exact crowd spot.`;
+  els.shareLine.textContent =
+    result.score >= 76
+      ? "That is share-worthy. Make somebody defend their own ranking."
+      : "This is a perfect challenge score: easy to argue with, easy to replay.";
   els.shareTextArea.hidden = true;
   els.shareTextArea.value = "";
 
@@ -831,6 +1015,25 @@ function renderResult(result) {
   renderReveal(result);
 }
 
+function celebrateResult(score) {
+  if (!els.resultBurst) return;
+  els.resultBurst.innerHTML = "";
+  const pieces = score >= 76 ? 16 : 10;
+
+  for (let index = 0; index < pieces; index += 1) {
+    const piece = document.createElement("span");
+    piece.style.setProperty("--x", `${Math.round((Math.random() - 0.5) * 240)}px`);
+    piece.style.setProperty("--y", `${Math.round(-40 - Math.random() * 150)}px`);
+    piece.style.setProperty("--r", `${Math.round((Math.random() - 0.5) * 160)}deg`);
+    piece.style.setProperty("--delay", `${Math.round(Math.random() * 160)}ms`);
+    els.resultBurst.append(piece);
+  }
+
+  setTimeout(() => {
+    els.resultBurst.innerHTML = "";
+  }, 1500);
+}
+
 function renderReveal(result) {
   els.revealList.innerHTML = "";
   result.target.forEach((cardId) => {
@@ -838,7 +1041,7 @@ function renderReveal(result) {
     const item = document.createElement("li");
     item.className = "reveal-card";
     item.innerHTML = `
-      <strong>${card.icon} ${card.title}</strong>
+      <strong>${card.title}</strong>
       <span>${card.detail}</span>
       <div class="heat-bar" aria-label="Crowd heat ${card.score}%"><span style="width: ${card.score}%"></span></div>
     `;
@@ -846,31 +1049,47 @@ function renderReveal(result) {
   });
 }
 
-function createShareText() {
+function getShareUrl() {
+  return new URL("/", CONFIG.siteUrl || window.location.origin).toString();
+}
+
+function createShareTitle() {
+  return `Mild Takes ${els.dailyNumber.textContent}`;
+}
+
+function createShareText(options = {}) {
   const result = state.result;
+  const includeUrl = options.includeUrl !== false;
   const symbols = result.diffs.map((diff) => {
     if (diff === 0) return "🟩";
     if (diff === 1) return "🟨";
     if (diff === 2) return "🟧";
     return "⬛";
   });
-
-  return [
-    `Mild Takes ${els.dailyNumber.textContent} - ${result.score}% crowd match`,
+  const exactLabel = result.exact === 1 ? "exact spot" : "exact spots";
+  const lines = [
+    createShareTitle(),
+    `Crowd match: ${result.score}%`,
     symbols.join(""),
-    `${result.exact}/5 exact spots`,
-    "Can you sort the daily take better?"
-  ].join("\n");
+    `${result.exact}/5 ${exactLabel}`,
+    "I ranked today's tiny social dilemma. Your turn:"
+  ];
+
+  if (includeUrl) lines.push(getShareUrl());
+  return lines.join("\n");
 }
 
 async function shareResult() {
   if (!state.result) return;
-  const text = createShareText();
   els.copyStatus.textContent = "";
 
   if (navigator.share) {
     try {
-      await navigator.share({ title: "Mild Takes", text });
+      await navigator.share({
+        title: createShareTitle(),
+        text: createShareText({ includeUrl: false }),
+        url: getShareUrl()
+      });
       trackShare("native_share");
       return;
     } catch (error) {
@@ -881,17 +1100,66 @@ async function shareResult() {
   await copyResult();
 }
 
-async function copyResult() {
+function openShareWindow(url) {
+  window.open(url, "_blank", "noopener,noreferrer,width=640,height=720");
+}
+
+async function shareToTarget(target) {
+  if (!state.result) return;
+  const url = getShareUrl();
+  const text = createShareText();
+  const textWithoutUrl = createShareText({ includeUrl: false });
+  els.copyStatus.textContent = "";
+
+  if (target === "x") {
+    openShareWindow(
+      `https://twitter.com/intent/tweet?text=${encodeURIComponent(textWithoutUrl)}&url=${encodeURIComponent(url)}`
+    );
+    els.copyStatus.textContent = "Opening X share.";
+    trackShare("x");
+    return;
+  }
+
+  if (target === "facebook") {
+    openShareWindow(
+      `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(
+        textWithoutUrl
+      )}`
+    );
+    els.copyStatus.textContent = "Opening Facebook share.";
+    trackShare("facebook");
+    return;
+  }
+
+  if (target === "threads") {
+    openShareWindow(`https://www.threads.net/intent/post?text=${encodeURIComponent(text)}`);
+    els.copyStatus.textContent = "Opening Threads share.";
+    trackShare("threads");
+    return;
+  }
+
+  if (target === "sms") {
+    window.location.href = `sms:?&body=${encodeURIComponent(text)}`;
+    trackShare("sms");
+    return;
+  }
+
+  if (target === "instagram") {
+    await copyResult("instagram", "Copied for Instagram.");
+  }
+}
+
+async function copyResult(method = "copy", successMessage = "Copied result.") {
   if (!state.result) return;
   const text = createShareText();
   try {
     await navigator.clipboard.writeText(text);
-    els.copyStatus.textContent = "Copied.";
-    trackShare("copy");
+    els.copyStatus.textContent = successMessage;
+    trackShare(method);
   } catch {
     if (legacyCopy(text)) {
-      els.copyStatus.textContent = "Copied.";
-      trackShare("legacy_copy");
+      els.copyStatus.textContent = successMessage;
+      trackShare(method === "copy" ? "legacy_copy" : `${method}_legacy_copy`);
       return;
     }
     els.shareTextArea.value = text;
@@ -948,6 +1216,10 @@ function hasSupabaseConfig() {
   return Boolean(CONFIG.supabaseUrl && CONFIG.supabaseAnonKey);
 }
 
+function getAuthRedirectUrl() {
+  return new URL("/", CONFIG.siteUrl || window.location.origin).toString();
+}
+
 function initAnalytics() {
   if (CONFIG.gaMeasurementId && !window.gtag) {
     const gaScript = document.createElement("script");
@@ -992,7 +1264,14 @@ async function initializeOnline() {
     return;
   }
 
-  online.client = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey);
+  online.client = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey, {
+    auth: {
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      flowType: "pkce",
+      persistSession: true
+    }
+  });
   online.enabled = true;
   els.onlineStatus.textContent = "Connecting";
 
@@ -1049,7 +1328,7 @@ function normalizeRemoteRound(row) {
 }
 
 async function loadRemoteDailyRound() {
-  if (!online.enabled) return;
+  if (!online.enabled || CONFIG.useRemoteRounds !== true) return;
   const today = new Date();
   const playDate = formatDateKey(new Date(today.getFullYear(), today.getMonth(), today.getDate()));
   const { data, error } = await online.client
@@ -1065,8 +1344,8 @@ async function loadRemoteDailyRound() {
   }
 
   const saved = loadSavedState();
-  const savedResult = saved.results?.[playDate];
   const puzzle = normalizeRemoteRound(data);
+  const savedResult = getSavedResultForPuzzle(saved, playDate, puzzle);
   state.puzzle = puzzle;
   state.dailyNumber = data.day_number;
   state.todayKey = data.play_date;
@@ -1079,6 +1358,7 @@ async function loadRemoteDailyRound() {
     );
   state.locked = Boolean(savedResult);
   state.result = savedResult || null;
+  state.selectedCardId = "";
   state.archiveMode = false;
   online.remoteRoundLoaded = true;
   els.dateLabel.textContent = prettyDate(new Date(`${data.play_date}T00:00:00`));
@@ -1125,6 +1405,56 @@ async function refreshLiveData() {
   renderOnlineWidgets();
 }
 
+function getUserDisplayName() {
+  const user = online.session?.user;
+  return (
+    online.profile?.display_name ||
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    user?.email?.split("@")[0] ||
+    "Player"
+  );
+}
+
+function getInitials(name) {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0].toUpperCase())
+    .join("");
+}
+
+function renderAuthDialogState() {
+  const signedIn = Boolean(online.session?.user);
+  const configured = hasSupabaseConfig();
+
+  els.oauthGrid.hidden = signedIn || !configured;
+  els.accountCard.hidden = !signedIn;
+  els.signOutButton.hidden = !signedIn;
+
+  if (signedIn) {
+    const displayName = getUserDisplayName();
+    els.authTitle.textContent = "Your account";
+    els.authDescription.textContent = "Your plays, streak, and leaderboard spot are syncing with Mild Takes.";
+    els.accountName.textContent = displayName;
+    els.accountEmail.textContent = online.session.user.email || "";
+    els.accountAvatar.textContent = getInitials(displayName) || "MT";
+    els.authMessage.textContent = "Signed in.";
+    return;
+  }
+
+  els.authTitle.textContent = "Save your streak";
+  els.authDescription.textContent =
+    "Sign in to persist your plays, appear on the leaderboard, and unlock owner reporting.";
+  els.accountName.textContent = "Signed in";
+  els.accountEmail.textContent = "";
+  els.accountAvatar.textContent = "MT";
+  els.authMessage.textContent = configured
+    ? "Continue with Google to save your streak and leaderboard spot."
+    : "Add Supabase keys in config.js to enable login.";
+}
+
 function renderOnlineWidgets() {
   if (!hasSupabaseConfig()) {
     els.authStatus.textContent = "Offline mode";
@@ -1141,6 +1471,7 @@ function renderOnlineWidgets() {
   }
 
   els.signOutButton.hidden = !online.session;
+  renderAuthDialogState();
   els.adminButton.hidden = !isOwner();
   els.adminEmail.textContent = CONFIG.ownerEmail;
   renderLeaderboard();
@@ -1216,7 +1547,7 @@ async function signIn(provider) {
     els.authMessage.textContent = "Supabase is not configured yet. Add keys in config.js first.";
     return;
   }
-  const redirectTo = new URL("/", CONFIG.siteUrl || window.location.origin).toString();
+  const redirectTo = getAuthRedirectUrl();
   const { error } = await online.client.auth.signInWithOAuth({
     provider,
     options: { redirectTo }
@@ -1349,57 +1680,49 @@ function exportRounds() {
   els.copyStatus.textContent = "Round JSON is selected below the result panel.";
 }
 
+els.takeList.addEventListener("pointerdown", startReorderPointer);
+
 els.takeList.addEventListener("click", (event) => {
+  if (suppressNextCardClick) {
+    suppressNextCardClick = false;
+    return;
+  }
+
   const moveButton = event.target.closest("[data-move]");
-  if (!moveButton) return;
-  const item = moveButton.closest(".take-card");
-  moveCard(item.dataset.id, moveButton.dataset.move === "up" ? -1 : 1);
-});
+  if (moveButton) {
+    const item = moveButton.closest(".take-card");
+    moveCard(item.dataset.id, moveButton.dataset.move === "up" ? -1 : 1);
+    return;
+  }
 
-els.takeList.addEventListener("dragstart", (event) => {
-  if (state.locked) return;
   const item = event.target.closest(".take-card");
-  if (!item) return;
-  item.classList.add("is-dragging");
-  event.dataTransfer.setData("text/plain", item.dataset.id);
-});
+  if (!item || state.locked) return;
 
-els.takeList.addEventListener("dragend", (event) => {
-  const item = event.target.closest(".take-card");
-  item?.classList.remove("is-dragging");
-  document.querySelectorAll(".is-over").forEach((node) => node.classList.remove("is-over"));
-});
+  if (!state.selectedCardId) {
+    state.selectedCardId = item.dataset.id;
+    renderCards();
+    return;
+  }
 
-els.takeList.addEventListener("dragover", (event) => {
-  if (state.locked) return;
-  event.preventDefault();
-  const item = event.target.closest(".take-card");
-  document.querySelectorAll(".is-over").forEach((node) => node.classList.remove("is-over"));
-  item?.classList.add("is-over");
-});
+  if (state.selectedCardId === item.dataset.id) {
+    state.selectedCardId = "";
+    renderCards();
+    return;
+  }
 
-els.takeList.addEventListener("drop", (event) => {
-  if (state.locked) return;
-  event.preventDefault();
-  const target = event.target.closest(".take-card");
-  const draggedId = event.dataTransfer.getData("text/plain");
-  if (!target || !draggedId || target.dataset.id === draggedId) return;
-
-  const nextOrder = state.order.filter((cardId) => cardId !== draggedId);
-  const targetIndex = nextOrder.indexOf(target.dataset.id);
-  nextOrder.splice(targetIndex, 0, draggedId);
-  state.order = nextOrder;
-  renderCards();
+  swapCards(state.selectedCardId, item.dataset.id);
 });
 
 els.submitButton.addEventListener("click", lockIn);
 els.resetButton.addEventListener("click", resetOrder);
 els.shareButton.addEventListener("click", shareResult);
-els.copyButton.addEventListener("click", copyResult);
+els.copyButton.addEventListener("click", () => copyResult());
+els.socialShareRow.addEventListener("click", (event) => {
+  const shareButton = event.target.closest("[data-share-target]");
+  if (shareButton) shareToTarget(shareButton.dataset.shareTarget);
+});
 els.signInButton.addEventListener("click", () => {
-  els.authMessage.textContent = hasSupabaseConfig()
-    ? "Continue with Google to save your streak and leaderboard spot."
-    : "Add Supabase keys in config.js to enable login.";
+  renderAuthDialogState();
   els.authDialog.showModal();
 });
 els.signOutButton.addEventListener("click", signOut);

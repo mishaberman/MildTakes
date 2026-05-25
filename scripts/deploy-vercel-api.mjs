@@ -16,7 +16,8 @@ const files = [
   "app.js",
   "config.js",
   "vercel.json",
-  "robots.txt"
+  "robots.txt",
+  "social-card.svg"
 ];
 
 const payloadFiles = await Promise.all(
