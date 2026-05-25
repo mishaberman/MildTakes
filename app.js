@@ -482,10 +482,8 @@ const els = {
   sponsorLine: document.querySelector("#sponsorLine"),
   promptTitle: document.querySelector("#promptTitle"),
   promptTease: document.querySelector("#promptTease"),
-  axisLeft: document.querySelector("#axisLeft"),
-  axisRight: document.querySelector("#axisRight"),
-  rankStartLabel: document.querySelector("#rankStartLabel"),
-  rankEndLabel: document.querySelector("#rankEndLabel"),
+  verticalTopLabel: document.querySelector("#verticalTopLabel"),
+  verticalBottomLabel: document.querySelector("#verticalBottomLabel"),
   takeList: document.querySelector("#takeList"),
   submitButton: document.querySelector("#submitButton"),
   resetButton: document.querySelector("#resetButton"),
@@ -689,12 +687,65 @@ function getCard(cardId) {
   return state.puzzle.cards.find((card) => card.id === cardId);
 }
 
+function getDisplayPrompt(puzzle) {
+  const basePrompt = puzzle.prompt.replace(/\.$/, "").split(/\s+from\s+/i)[0];
+  return `${basePrompt}: ${puzzle.right} at the top, ${puzzle.left} at the bottom.`;
+}
+
 function getTargetOrder() {
-  return [...state.puzzle.cards].sort((a, b) => a.score - b.score).map((card) => card.id);
+  return [...state.puzzle.cards].sort((a, b) => b.score - a.score).map((card) => card.id);
+}
+
+function getScaleLabel(index, count = state.puzzle.cards.length) {
+  const maxIndex = Math.max(count - 1, 0);
+  if (index <= 0) return state.puzzle.right;
+  if (index >= maxIndex) return state.puzzle.left;
+  if (index === Math.floor(maxIndex / 2)) return "Middle";
+  return index < maxIndex / 2 ? `Leans ${state.puzzle.right}` : `Leans ${state.puzzle.left}`;
+}
+
+function buildScaleMarker(index, count = state.puzzle.cards.length, options = {}) {
+  const label = getScaleLabel(index, count);
+  const maxIndex = Math.max(count - 1, 1);
+  const progress = Math.round((1 - index / maxIndex) * 100);
+  const className = `scale-marker${options.placeholder ? " is-drop-marker" : ""}`;
+  const ariaLabel = options.placeholder
+    ? `Drop spot ${index + 1} on scale: ${label}`
+    : `Spot ${index + 1} on scale: ${label}`;
+
+  return `
+    <span class="${className}" style="--scale-progress: ${progress}%" aria-label="${escapeHtml(ariaLabel)}">
+      <span class="scale-track" aria-hidden="true">
+        <span class="scale-fill"></span>
+        <span class="scale-pin"></span>
+      </span>
+      <span class="scale-copy"><small>${escapeHtml(label)}</small></span>
+    </span>
+  `;
+}
+
+function updateCardScaleMarker(item, index, options = {}) {
+  const marker = item.querySelector(".scale-marker");
+  const rank = item.querySelector(".rank-slot span");
+  if (rank) rank.textContent = index + 1;
+  if (marker) marker.outerHTML = buildScaleMarker(index, state.order.length, options);
+}
+
+function updatePlaceholderScale() {
+  const session = reorderSession;
+  if (!session?.placeholder) return;
+  const index = Math.max(0, [...els.takeList.children].indexOf(session.placeholder));
+  const label = getScaleLabel(index, state.order.length);
+  updateCardScaleMarker(session.placeholder, index, { placeholder: true });
+  updateCardScaleMarker(session.item, index);
+
+  const dropLabel = session.placeholder.querySelector(".drop-scale-label");
+  if (dropLabel) dropLabel.textContent = `This spot reads as ${label}.`;
 }
 
 function getPuzzleContentKey(puzzle) {
   return [
+    "top-is-right-v2",
     puzzle.id,
     puzzle.prompt,
     puzzle.left,
@@ -715,12 +766,10 @@ function render() {
   els.bestValue.textContent = stats.best === null ? "--" : `${stats.best}%`;
   els.categoryLabel.textContent = state.puzzle.category;
   els.sponsorLine.textContent = state.puzzle.sponsor;
-  els.promptTitle.textContent = state.puzzle.prompt;
-  els.promptTease.textContent = `Put the card closest to "${state.puzzle.left}" in spot 1. Put the card closest to "${state.puzzle.right}" in spot 5.`;
-  els.axisLeft.textContent = state.puzzle.left;
-  els.axisRight.textContent = state.puzzle.right;
-  els.rankStartLabel.textContent = state.puzzle.left;
-  els.rankEndLabel.textContent = state.puzzle.right;
+  els.promptTitle.textContent = getDisplayPrompt(state.puzzle);
+  els.promptTease.textContent = `Top means "${state.puzzle.right}". Bottom means "${state.puzzle.left}". Drag the cards into the order most people would choose.`;
+  els.verticalTopLabel.textContent = state.puzzle.right;
+  els.verticalBottomLabel.textContent = state.puzzle.left;
   els.submitButton.disabled = state.locked;
   els.resetButton.disabled = state.locked;
   els.submitButton.textContent = state.locked ? "Locked" : "Lock it in";
@@ -757,6 +806,9 @@ function renderCards() {
     copy.className = "take-copy";
     copy.innerHTML = `<strong>${card.title}</strong><span>${card.detail}</span>`;
 
+    const scale = document.createElement("span");
+    scale.innerHTML = buildScaleMarker(index, state.order.length);
+
     const controls = document.createElement("span");
     controls.className = "move-controls";
     controls.innerHTML = `
@@ -768,7 +820,7 @@ function renderCards() {
     upButton.disabled = state.locked || index === 0;
     downButton.disabled = state.locked || index === state.order.length - 1;
 
-    item.append(slot, copy, controls);
+    item.append(slot, copy, scale.firstElementChild, controls);
     els.takeList.append(item);
   });
 }
@@ -827,9 +879,10 @@ function beginReorderDrag(event) {
   placeholder.className = "take-card drag-placeholder";
   placeholder.setAttribute("aria-hidden", "true");
   placeholder.style.height = `${rect.height}px`;
-      placeholder.innerHTML = `
+  placeholder.innerHTML = `
     <span class="rank-slot"><span>+</span></span>
-    <span class="take-copy"><strong>Drop here</strong><span>Release to place this take.</span></span>
+    <span class="take-copy"><strong>Drop here</strong><span class="drop-scale-label">Release to place this take.</span></span>
+    ${buildScaleMarker(0, state.order.length, { placeholder: true })}
   `;
 
   session.dragging = true;
@@ -848,6 +901,7 @@ function beginReorderDrag(event) {
     zIndex: "1000"
   });
   document.body.append(session.item);
+  updatePlaceholderScale();
   document.body.classList.add("is-reordering");
   els.takeList.classList.add("is-reordering");
   state.selectedCardId = "";
@@ -863,6 +917,7 @@ function moveReorderPlaceholder(clientY) {
     return clientY < rect.top + rect.height / 2;
   });
   els.takeList.insertBefore(session.placeholder, nextCard || null);
+  updatePlaceholderScale();
 }
 
 function updateReorderPointer(event) {

@@ -57,27 +57,30 @@
                 </div>
                 <h1 id="promptTitle">Loading today's take...</h1>
                 <p class="prompt-tease" id="promptTease">
-                  Drag the cards from the left label to the right label. Your score is how close
-                  you get to the crowd's order.
+                  Drag the cards. The gauge on each row shows what that position means.
                 </p>
-                <div class="axis-rail" aria-hidden="true">
-                  <span id="axisLeft">Least</span>
-                  <span class="rail-line"></span>
-                  <span id="axisRight">Most</span>
-                </div>
-                <div class="rank-guide" aria-label="How to read the order">
-                  <span>
-                    <strong>Spot 1</strong>
-                    <small id="rankStartLabel">Left side</small>
-                  </span>
-                  <span>
-                    <strong>Spot 5</strong>
-                    <small id="rankEndLabel">Right side</small>
-                  </span>
-                </div>
               </div>
 
-              <ol class="take-list" id="takeList" aria-label="Your order"></ol>
+              <div class="rank-stage">
+                <aside class="vertical-scale" aria-label="Ranking scale">
+                  <span class="vertical-scale-label top-scale">
+                    <strong>Top</strong>
+                    <small id="verticalTopLabel">Most</small>
+                  </span>
+                  <span class="vertical-scale-line" aria-hidden="true">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                  </span>
+                  <span class="vertical-scale-label bottom-scale">
+                    <strong>Bottom</strong>
+                    <small id="verticalBottomLabel">Least</small>
+                  </span>
+                </aside>
+                <ol class="take-list" id="takeList" aria-label="Your order"></ol>
+              </div>
 
               <div class="action-row">
                 <button class="primary-button" id="submitButton" type="button">

@@ -1939,3 +1939,210 @@ body.is-reordering {
     grid-template-columns: minmax(0, 1fr);
   }
 }
+
+.take-card {
+  grid-template-columns: 48px minmax(0, 1fr) minmax(112px, 148px) auto;
+}
+
+.rank-stage {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr);
+  gap: 14px;
+  align-items: stretch;
+}
+
+.vertical-scale {
+  position: sticky;
+  top: 86px;
+  align-self: start;
+  display: grid;
+  grid-template-rows: auto minmax(360px, 1fr) auto;
+  gap: 10px;
+  min-height: 570px;
+  padding: 10px;
+  border: 1.5px solid var(--ink);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.84);
+  box-shadow: 3px 3px 0 var(--ink);
+}
+
+.vertical-scale-label {
+  display: grid;
+  gap: 3px;
+  min-height: 72px;
+  padding: 10px 8px;
+  border: 1.5px solid var(--ink);
+  border-radius: 13px;
+  background: var(--surface);
+  text-align: center;
+}
+
+.top-scale {
+  background: #ffe8e2;
+}
+
+.bottom-scale {
+  background: #e4f4ee;
+}
+
+.vertical-scale-label strong {
+  color: var(--ink);
+  font-size: 0.72rem;
+  font-weight: 950;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.vertical-scale-label small {
+  color: var(--teal-dark);
+  font-size: 0.86rem;
+  font-weight: 950;
+  line-height: 1.08;
+}
+
+.top-scale small {
+  color: #a13b30;
+}
+
+.vertical-scale-line {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: 16px;
+  margin: 0 auto;
+  padding: 12px 0;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: linear-gradient(180deg, var(--coral), var(--gold), var(--teal));
+  box-shadow: 2px 2px 0 var(--ink);
+}
+
+.vertical-scale-line span {
+  width: 28px;
+  height: 3px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--surface);
+}
+
+.scale-marker {
+  display: grid;
+  align-content: center;
+  gap: 6px;
+  min-width: 0;
+  min-height: 54px;
+  padding: 8px 9px;
+  border: 1.5px solid var(--line);
+  border-radius: 12px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.92), rgba(238, 245, 240, 0.82)),
+    var(--surface);
+}
+
+.scale-track {
+  position: relative;
+  display: block;
+  height: 9px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--teal), var(--gold), var(--coral));
+  box-shadow: 1px 1px 0 var(--ink);
+}
+
+.scale-fill {
+  display: block;
+  width: var(--scale-progress);
+  height: 100%;
+  border-radius: inherit;
+  background: rgba(255, 255, 255, 0.34);
+}
+
+.scale-pin {
+  position: absolute;
+  top: 50%;
+  left: var(--scale-progress);
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--ink);
+  border-radius: 999px;
+  background: var(--surface);
+  box-shadow: 1px 1px 0 var(--ink);
+  transform: translate(-50%, -50%);
+}
+
+.scale-copy small {
+  display: block;
+  color: var(--teal-dark);
+  font-size: 0.73rem;
+  font-weight: 900;
+  line-height: 1.1;
+  text-align: center;
+}
+
+.take-card.is-dragging .scale-marker,
+.scale-marker.is-drop-marker {
+  border-color: var(--ink);
+  background:
+    linear-gradient(180deg, rgba(242, 191, 67, 0.2), rgba(18, 125, 120, 0.1)),
+    var(--surface);
+}
+
+.drag-placeholder .scale-copy small,
+.take-card.is-dragging .scale-copy small {
+  color: var(--ink);
+}
+
+@media (max-width: 760px) {
+  .rank-stage {
+    grid-template-columns: 64px minmax(0, 1fr);
+    gap: 8px;
+  }
+
+  .vertical-scale {
+    top: 72px;
+    grid-template-rows: auto minmax(380px, 1fr) auto;
+    min-height: 648px;
+    padding: 7px;
+    border-radius: 14px;
+  }
+
+  .vertical-scale-label {
+    min-height: 78px;
+    padding: 8px 4px;
+  }
+
+  .vertical-scale-label strong {
+    font-size: 0.64rem;
+  }
+
+  .vertical-scale-label small {
+    font-size: 0.72rem;
+  }
+
+  .vertical-scale-line {
+    width: 12px;
+  }
+
+  .vertical-scale-line span {
+    width: 20px;
+  }
+
+  .take-card {
+    grid-template-columns: 42px minmax(0, 1fr) minmax(78px, 92px);
+  }
+
+  .scale-marker {
+    min-height: 50px;
+    padding: 7px 6px;
+  }
+
+  .scale-copy small {
+    font-size: 0.66rem;
+  }
+
+  .move-controls {
+    grid-column: 1 / -1;
+  }
+}
