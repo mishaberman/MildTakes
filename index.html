@@ -5,185 +5,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Local Five collects creator-ranked top five lists for food, family ideas, outdoors, and neighborhood gems."
+      content="Local Five is a mobile-first Top 5 ranking game for local food debates, starting with Seattle pizza."
     />
     <meta property="og:title" content="Local Five" />
     <meta
       property="og:description"
-      content="Find the local top five lists people are already sharing, sorted by city and category."
+      content="Make your Top 5 local food list, compare with the city, and share your ranking."
     />
     <meta property="og:image" content="https://project-hfa4f.vercel.app/social-card.svg" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="theme-color" content="#f6f3ed" />
+    <meta name="theme-color" content="#f7f2e9" />
     <title>Local Five</title>
-    <link rel="stylesheet" href="./styles.css" />
+    <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <div class="app-shell">
-      <header class="topbar" aria-label="Local Five header">
-        <a class="brand" href="./" aria-label="Local Five home">
-          <span class="brand-mark" aria-hidden="true">L5</span>
-          <span>
-            <strong>Local Five</strong>
-            <small>Creator-ranked city lists</small>
-          </span>
-        </a>
-        <nav class="top-actions" aria-label="Primary">
-          <button class="ghost-button" id="savedButton" type="button">Saved <span id="savedCount">0</span></button>
-          <button class="ghost-button" id="adminButton" type="button" hidden>Owner queue</button>
-          <button class="primary-button" id="submitSourceButton" type="button">Submit a list</button>
-        </nav>
-      </header>
-
-      <main>
-        <section class="finder-band" aria-labelledby="pageTitle">
-          <div class="finder-layout">
-            <div class="finder-copy">
-              <p class="eyebrow">Seattle beta</p>
-              <h1 id="pageTitle">The best local top-five lists, without digging through social feeds.</h1>
-              <p>
-                Search a city, pick a craving or plan, then compare creator rankings,
-                neighborhoods, source links, and the consensus picks.
-              </p>
-            </div>
-
-            <form class="search-panel" id="filterForm" role="search">
-              <label>
-                <span>City</span>
-                <select id="citySelect"></select>
-              </label>
-              <label>
-                <span>Category</span>
-                <select id="categorySelect"></select>
-              </label>
-              <label class="search-field">
-                <span>Search</span>
-                <input id="searchInput" type="search" placeholder="pizza, toddler parks, pho..." />
-              </label>
-            </form>
-          </div>
-        </section>
-
-        <section class="trend-band" aria-label="Trending searches">
-          <div class="trend-row" id="trendRow"></div>
-        </section>
-
-        <section class="workspace" aria-label="Local ranked lists">
-          <section class="list-column" aria-labelledby="listTitle">
-            <div class="section-heading">
-              <div>
-                <p class="eyebrow">Ranked sources</p>
-                <h2 id="listTitle">Creator lists</h2>
-              </div>
-              <span class="result-count" id="resultCount">0 lists</span>
-            </div>
-            <div class="source-grid" id="sourceGrid"></div>
-          </section>
-
-          <aside class="detail-panel" aria-labelledby="detailTitle">
-            <div class="detail-visual" id="detailVisual" aria-hidden="true"></div>
-            <p class="eyebrow" id="detailMeta">Select a list</p>
-            <h2 id="detailTitle">See the five picks and why each one made the cut.</h2>
-            <p id="detailSummary">
-              Use creator lists for discovery, then check the consensus tab when several people
-              keep naming the same place.
-            </p>
-            <ol class="pick-list" id="pickList"></ol>
-            <div class="detail-actions">
-              <button class="primary-button" id="saveListButton" type="button">Save list</button>
-              <button class="ghost-button" id="shareListButton" type="button">Share</button>
-              <a class="ghost-link" id="sourceLink" href="#" target="_blank" rel="noreferrer">Open source</a>
-            </div>
-          </aside>
-        </section>
-
-        <section class="consensus-band" aria-labelledby="consensusTitle">
-          <div class="section-heading">
-            <div>
-              <p class="eyebrow">Consensus</p>
-              <h2 id="consensusTitle">Places that keep showing up</h2>
-            </div>
-            <button class="ghost-button" id="copyConsensusButton" type="button">Copy top 5</button>
-          </div>
-          <div class="consensus-grid" id="consensusGrid"></div>
-        </section>
-      </main>
-    </div>
-
-    <dialog class="modal" id="submitDialog">
-      <form class="modal-body" id="submitForm" method="dialog">
-        <button class="icon-button modal-close" id="closeSubmit" type="button" aria-label="Close">x</button>
-        <p class="eyebrow">Source queue</p>
-        <h2>Submit an influencer list</h2>
-        <p>
-          Paste a TikTok, Instagram, blog, or YouTube list. This beta keeps a local review queue;
-          the next backend step is a shared Supabase queue with owner approval.
-        </p>
-        <label>
-          <span>Creator handle</span>
-          <input id="creatorInput" required placeholder="@seattlefoodperson" />
-        </label>
-        <label>
-          <span>Source URL</span>
-          <input id="urlInput" type="url" required placeholder="https://..." />
-        </label>
-        <div class="modal-grid">
-          <label>
-            <span>City</span>
-            <select id="submitCity"></select>
-          </label>
-          <label>
-            <span>Category</span>
-            <select id="submitCategory"></select>
-          </label>
-        </div>
-        <label>
-          <span>Notes</span>
-          <textarea id="notesInput" placeholder="What did they rank? Any standout places?"></textarea>
-        </label>
-        <button class="primary-button" type="submit">Add to queue</button>
-        <p class="status-line" id="submitStatus" role="status"></p>
-      </form>
-    </dialog>
-
-    <dialog class="modal wide-modal" id="savedDialog">
-      <div class="modal-body">
-        <button class="icon-button modal-close" id="closeSaved" type="button" aria-label="Close">x</button>
-        <p class="eyebrow">Saved</p>
-        <h2>Your saved lists</h2>
-        <div class="compact-list" id="savedList"></div>
-      </div>
-    </dialog>
-
-    <dialog class="modal" id="shareDialog">
-      <div class="modal-body">
-        <button class="icon-button modal-close" id="closeShare" type="button" aria-label="Close">x</button>
-        <p class="eyebrow">Share</p>
-        <h2>Send this list</h2>
-        <textarea class="share-textarea" id="shareText" readonly></textarea>
-        <div class="share-actions" aria-label="Share options">
-          <button class="primary-button" data-share="copy" type="button">Copy</button>
-          <button class="ghost-button" data-share="native" type="button">Phone share</button>
-          <button class="ghost-button" data-share="x" type="button">X</button>
-          <button class="ghost-button" data-share="facebook" type="button">Facebook</button>
-          <button class="ghost-button" data-share="whatsapp" type="button">WhatsApp</button>
-        </div>
-      </div>
-    </dialog>
-
-    <dialog class="modal wide-modal" id="adminDialog">
-      <div class="modal-body">
-        <button class="icon-button modal-close" id="closeAdmin" type="button" aria-label="Close">x</button>
-        <p class="eyebrow">Owner queue</p>
-        <h2>Submitted sources</h2>
-        <div class="compact-list" id="queueList"></div>
-      </div>
-    </dialog>
-
+    <div id="app"></div>
     <div class="toast" id="toast" role="status" aria-live="polite"></div>
-
-    <script src="./config.js" defer></script>
-    <script src="./app.js" defer></script>
+    <noscript>
+      <main class="noscript-card">
+        <h1>Local Five</h1>
+        <p>Enable JavaScript to make and share your local Top 5.</p>
+      </main>
+    </noscript>
+    <script src="/config.js" defer></script>
+    <script src="/app.js" defer></script>
   </body>
 </html>

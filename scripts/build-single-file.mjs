@@ -8,9 +8,9 @@ const [html, css, config, app] = await Promise.all([
 ]);
 
 const inline = html
-  .replace('<link rel="stylesheet" href="./styles.css" />', `<style>\n${css}\n</style>`)
-  .replace('<script src="./config.js" defer></script>', `<script>\n${config}\n</script>`)
-  .replace('<script src="./app.js" defer></script>', `<script>\n${app}\n</script>`);
+  .replace('<link rel="stylesheet" href="/styles.css" />', `<style>\n${css}\n</style>`)
+  .replace('<script src="/config.js" defer></script>', `<script>\n${config}\n</script>`)
+  .replace('<script src="/app.js" defer></script>', `<script>\n${app}\n</script>`);
 
 await mkdir("dist", { recursive: true });
 await writeFile("dist/local-five.html", inline);

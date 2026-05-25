@@ -1,16 +1,16 @@
 # Local Five Live Setup
 
-## 1. Current static deploy
+## Current Deployment
 
-This repo is still a static site. Vercel can deploy it with no install command, build command, or output directory.
-
-Current production URL:
+Production URL:
 
 `https://project-hfa4f.vercel.app`
 
-## 2. Configure public settings
+The app is a static single-page application. Vercel rewrites clean paths like `/seattle/pizza` and `/rank/:submissionId` to `index.html`.
 
-Edit `config.js`:
+## Public Config
+
+`config.js` exposes only browser-safe values:
 
 ```js
 window.LOCAL_FIVE_CONFIG = {
@@ -21,37 +21,45 @@ window.LOCAL_FIVE_CONFIG = {
   metaPixelId: "1507406784184424",
   siteUrl: "https://project-hfa4f.vercel.app/"
 };
-
-window.MILD_TAKES_CONFIG = window.LOCAL_FIVE_CONFIG;
 ```
 
-The public anon key can be used in browser code. Never put a Supabase secret key in `config.js`, HTML, or client-side JavaScript.
+Never put a Supabase secret key, Vercel token, or OAuth secret in browser JavaScript.
 
-## 3. Optional owner queue mode
+## Owner View
 
 Open:
 
 `https://project-hfa4f.vercel.app/?owner=1`
 
-That reveals the owner queue button for this browser. It is only a local beta control until Supabase auth is connected again for the new product.
+That reveals the `Admin` link in this browser. The static admin view is only for local seed-data inspection until Supabase auth is wired back in.
 
-## 4. Supabase next step
+## Supabase Next Step
 
-Run `supabase/schema.sql` in the Supabase SQL editor when you want persistent storage for:
+Run `supabase/schema.sql` when ready to persist:
 
-- creator lists
-- list picks
-- submitted source links
-- lightweight events
+- cities
+- categories
+- places
+- creators
+- rank submissions
+- rank items
+- place suggestions
+- events
 
-Then wire `app.js` to fetch approved lists from Supabase and insert submitted links into `source_submissions`.
+Then wire the app to:
 
-## 5. Recommended launch checklist
+- read active categories and places
+- insert anonymous submissions
+- insert place suggestions
+- fetch aggregate rankings
+- show owner-only admin data for `mishaberman@gmail.com`
 
-- Replace starter sample links with real creator post URLs.
-- Add 25 to 50 Seattle lists before paid ads.
-- Create SEO pages for one city/category pair at a time.
-- Confirm Google Analytics and Meta Pixel are firing.
-- Test share links on iPhone and desktop.
-- Connect the Vercel GitHub app to `mishaberman/MildTakes` for automatic deploys from `main`.
-- Add a small local sponsor slot only after the main list view is useful.
+## Launch Checklist
+
+- Polish Seattle Pizza first.
+- Seed 50 pizza places and 10 admin lists.
+- Ask 10 people to complete the ranking on mobile.
+- Watch the completion rate from first place added to submitted Top 5.
+- Replace mock creator profiles only after opt-in.
+- Confirm GA and Meta Pixel events fire.
+- Grant the Vercel GitHub app access to `mishaberman/MildTakes` so pushes auto-deploy.
