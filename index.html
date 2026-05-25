@@ -5,375 +5,184 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta
       name="description"
-      content="Mild Takes is a daily social sorting game. Rank five tiny controversies and see how close you are to the crowd."
+      content="Local Five collects creator-ranked top five lists for food, family ideas, outdoors, and neighborhood gems."
     />
-    <meta property="og:title" content="Mild Takes" />
+    <meta property="og:title" content="Local Five" />
     <meta
       property="og:description"
-      content="Sort five tiny controversies and compare your taste to the crowd."
+      content="Find the local top five lists people are already sharing, sorted by city and category."
     />
     <meta property="og:image" content="https://project-hfa4f.vercel.app/social-card.svg" />
     <meta property="og:type" content="website" />
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="theme-color" content="#f5f7f4" />
-    <title>Mild Takes</title>
+    <meta name="theme-color" content="#f6f3ed" />
+    <title>Local Five</title>
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div class="app-shell">
-      <header class="topbar" aria-label="Game header">
-        <a class="brand" href="./" aria-label="Mild Takes home">
-          <span class="brand-mark" aria-hidden="true">MT</span>
-          <span class="brand-copy">
-            <strong>Mild Takes</strong>
-            <span id="dateLabel">Daily crowd game</span>
+      <header class="topbar" aria-label="Local Five header">
+        <a class="brand" href="./" aria-label="Local Five home">
+          <span class="brand-mark" aria-hidden="true">L5</span>
+          <span>
+            <strong>Local Five</strong>
+            <small>Creator-ranked city lists</small>
           </span>
         </a>
-        <div class="top-actions">
-          <span class="auth-chip" id="authStatus">Offline mode</span>
-          <button class="secondary-button compact-button" id="signInButton" type="button">
-            Sign in
-          </button>
-          <button class="secondary-button compact-button" id="adminButton" type="button" hidden>
-            Admin
-          </button>
-          <button class="icon-button" id="statsButton" type="button" aria-label="Stats">
-            <span aria-hidden="true">#</span>
-          </button>
-          <button class="icon-button" id="helpButton" type="button" aria-label="Rules">
-            <span aria-hidden="true">?</span>
-          </button>
-        </div>
+        <nav class="top-actions" aria-label="Primary">
+          <button class="ghost-button" id="savedButton" type="button">Saved <span id="savedCount">0</span></button>
+          <button class="ghost-button" id="adminButton" type="button" hidden>Owner queue</button>
+          <button class="primary-button" id="submitSourceButton" type="button">Submit a list</button>
+        </nav>
       </header>
 
       <main>
-        <section class="game-band" aria-labelledby="promptTitle">
-          <div class="game-layout">
-            <section class="play-surface" aria-labelledby="promptTitle">
-              <div class="prompt-block">
-                <div class="prompt-topline">
-                  <p class="category-pill" id="categoryLabel">Today</p>
-                  <span class="day-chip" id="dailyNumber">#000</span>
-                </div>
-                <h1 id="promptTitle">Loading today's take...</h1>
-                <p class="prompt-tease" id="promptTease">
-                  Drag the cards. The gauge on each row shows what that position means.
-                </p>
-              </div>
-
-              <div class="rank-stage">
-                <aside class="vertical-scale" aria-label="Ranking scale">
-                  <span class="vertical-scale-label top-scale">
-                    <strong>Top</strong>
-                    <small id="verticalTopLabel">Most</small>
-                  </span>
-                  <span class="vertical-scale-line" aria-hidden="true">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                  </span>
-                  <span class="vertical-scale-label bottom-scale">
-                    <strong>Bottom</strong>
-                    <small id="verticalBottomLabel">Least</small>
-                  </span>
-                </aside>
-                <ol class="take-list" id="takeList" aria-label="Your order"></ol>
-              </div>
-
-              <div class="action-row">
-                <button class="primary-button" id="submitButton" type="button">
-                  Lock it in
-                </button>
-                <button class="secondary-button" id="resetButton" type="button">
-                  Reset
-                </button>
-              </div>
-            </section>
-
-            <aside class="score-panel" aria-label="Daily status">
-              <div class="mini-deck" aria-hidden="true">
-                <span>1</span>
-                <span>2</span>
-                <span>3</span>
-              </div>
-              <div class="score-stat">
-                <p class="panel-kicker">Streak</p>
-                <p class="panel-number" id="streakValue">0</p>
-              </div>
-              <div class="score-stat">
-                <p class="panel-kicker">Best</p>
-                <p class="panel-number" id="bestValue">--</p>
-              </div>
-              <div class="score-note">
-                <strong>One daily take.</strong>
-                <span>Rank what most people would say, then compare your instincts to the room.</span>
-              </div>
-            </aside>
-          </div>
-        </section>
-
-        <section class="result-band" id="resultPanel" aria-live="polite" hidden>
-          <div class="result-layout">
-            <div class="result-burst" id="resultBurst" aria-hidden="true"></div>
-            <div class="result-meter" aria-label="Crowd match result">
-              <span id="scoreValue">0%</span>
-              <svg viewBox="0 0 120 120" role="img" aria-label="Score ring">
-                <circle class="meter-track" cx="60" cy="60" r="52"></circle>
-                <circle class="meter-fill" id="meterFill" cx="60" cy="60" r="52"></circle>
-              </svg>
+        <section class="finder-band" aria-labelledby="pageTitle">
+          <div class="finder-layout">
+            <div class="finder-copy">
+              <p class="eyebrow">Seattle beta</p>
+              <h1 id="pageTitle">The best local top-five lists, without digging through social feeds.</h1>
+              <p>
+                Search a city, pick a craving or plan, then compare creator rankings,
+                neighborhoods, source links, and the consensus picks.
+              </p>
             </div>
-            <div class="result-copy">
-              <p class="panel-kicker">Crowd match</p>
-              <h2 id="resultTitle">You are hard to place.</h2>
-              <p id="resultText"></p>
-              <div class="share-grid" id="shareGrid" aria-label="Share result grid"></div>
-              <p class="share-line" id="shareLine">Challenge a friend to beat your crowd match.</p>
-              <div class="result-actions">
-                <button class="primary-button" id="shareButton" type="button">Share result</button>
-                <button class="secondary-button" id="copyButton" type="button">Copy result</button>
-              </div>
-              <div class="social-share-row" id="socialShareRow" aria-label="Share to social platforms">
-                <button class="share-target x-share" data-share-target="x" type="button">X</button>
-                <button class="share-target facebook-share" data-share-target="facebook" type="button">
-                  Facebook
-                </button>
-                <button class="share-target threads-share" data-share-target="threads" type="button">
-                  Threads
-                </button>
-                <button class="share-target instagram-share" data-share-target="instagram" type="button">
-                  Instagram
-                </button>
-                <button class="share-target sms-share" data-share-target="sms" type="button">Text</button>
-              </div>
-              <p class="copy-status" id="copyStatus" role="status"></p>
-              <textarea class="share-textarea" id="shareTextArea" readonly hidden></textarea>
-            </div>
-          </div>
 
-          <aside class="sponsor-panel sponsor-result" aria-label="Advertisement">
-            <span>Sponsored</span>
-            <strong id="sponsorLine">A tiny slot for a tiny game.</strong>
-          </aside>
-
-          <div class="reveal-wrap">
-            <h2>Today's crowd order</h2>
-            <ol class="reveal-list" id="revealList"></ol>
+            <form class="search-panel" id="filterForm" role="search">
+              <label>
+                <span>City</span>
+                <select id="citySelect"></select>
+              </label>
+              <label>
+                <span>Category</span>
+                <select id="categorySelect"></select>
+              </label>
+              <label class="search-field">
+                <span>Search</span>
+                <input id="searchInput" type="search" placeholder="pizza, toddler parks, pho..." />
+              </label>
+            </form>
           </div>
         </section>
 
-        <section class="live-band" aria-labelledby="leaderboardTitle">
-          <div class="live-layout">
-            <section class="live-panel" aria-labelledby="leaderboardTitle">
-              <div class="section-heading">
-                <div>
-                  <p class="panel-kicker">Live</p>
-                  <h2 id="leaderboardTitle">Daily leaderboard</h2>
-                </div>
-                <span class="status-dot" id="onlineStatus">Setup needed</span>
-              </div>
-              <ol class="leaderboard-list" id="leaderboardList">
-                <li>Connect Supabase to show daily scores.</li>
-              </ol>
-            </section>
-
-            <section class="live-panel" aria-labelledby="metricsTitle">
-              <div class="section-heading">
-                <div>
-                  <p class="panel-kicker">Signals</p>
-                  <h2 id="metricsTitle">Today</h2>
-                </div>
-              </div>
-              <dl class="metric-grid" id="publicMetrics">
-                <div>
-                  <dt>Plays</dt>
-                  <dd>--</dd>
-                </div>
-                <div>
-                  <dt>Avg</dt>
-                  <dd>--</dd>
-                </div>
-                <div>
-                  <dt>Best</dt>
-                  <dd>--</dd>
-                </div>
-                <div>
-                  <dt>Shares</dt>
-                  <dd>--</dd>
-                </div>
-              </dl>
-            </section>
-          </div>
+        <section class="trend-band" aria-label="Trending searches">
+          <div class="trend-row" id="trendRow"></div>
         </section>
 
-        <section class="admin-band" id="adminPanel" aria-labelledby="adminTitle" hidden>
-          <div class="admin-layout">
+        <section class="workspace" aria-label="Local ranked lists">
+          <section class="list-column" aria-labelledby="listTitle">
             <div class="section-heading">
               <div>
-                <p class="panel-kicker">Owner</p>
-                <h2 id="adminTitle">Admin command center</h2>
+                <p class="eyebrow">Ranked sources</p>
+                <h2 id="listTitle">Creator lists</h2>
               </div>
-              <span class="status-dot" id="adminEmail">mishaberman@gmail.com</span>
+              <span class="result-count" id="resultCount">0 lists</span>
             </div>
+            <div class="source-grid" id="sourceGrid"></div>
+          </section>
 
-            <dl class="metric-grid admin-metrics" id="adminMetrics">
-              <div>
-                <dt>Total plays</dt>
-                <dd>--</dd>
-              </div>
-              <div>
-                <dt>Today</dt>
-                <dd>--</dd>
-              </div>
-              <div>
-                <dt>Users</dt>
-                <dd>--</dd>
-              </div>
-              <div>
-                <dt>Shares</dt>
-                <dd>--</dd>
-              </div>
-            </dl>
-
-            <div class="admin-actions">
-              <button class="primary-button" id="seedRoundsButton" type="button">Publish starter rounds</button>
-              <button class="secondary-button" id="refreshAdminButton" type="button">Refresh report</button>
-              <button class="secondary-button" id="exportRoundsButton" type="button">Export rounds</button>
-            </div>
-
-            <div class="admin-grid">
-              <section class="admin-card" aria-labelledby="adminRoundsTitle">
-                <h3 id="adminRoundsTitle">Rounds</h3>
-                <div class="admin-table-wrap">
-                  <table class="admin-table">
-                    <thead>
-                      <tr>
-                        <th>Day</th>
-                        <th>Category</th>
-                        <th>Prompt</th>
-                        <th>Status</th>
-                      </tr>
-                    </thead>
-                    <tbody id="adminRoundsTable"></tbody>
-                  </table>
-                </div>
-              </section>
-
-              <section class="admin-card" aria-labelledby="adminEventsTitle">
-                <h3 id="adminEventsTitle">Recent events</h3>
-                <div class="admin-table-wrap">
-                  <table class="admin-table">
-                    <thead>
-                      <tr>
-                        <th>When</th>
-                        <th>Event</th>
-                        <th>Round</th>
-                      </tr>
-                    </thead>
-                    <tbody id="adminEventsTable"></tbody>
-                  </table>
-                </div>
-              </section>
-            </div>
-
-            <p class="admin-note" id="adminNote">
-              Admin access requires Supabase auth as mishaberman@gmail.com and the schema in
-              supabase/schema.sql.
+          <aside class="detail-panel" aria-labelledby="detailTitle">
+            <div class="detail-visual" id="detailVisual" aria-hidden="true"></div>
+            <p class="eyebrow" id="detailMeta">Select a list</p>
+            <h2 id="detailTitle">See the five picks and why each one made the cut.</h2>
+            <p id="detailSummary">
+              Use creator lists for discovery, then check the consensus tab when several people
+              keep naming the same place.
             </p>
-          </div>
+            <ol class="pick-list" id="pickList"></ol>
+            <div class="detail-actions">
+              <button class="primary-button" id="saveListButton" type="button">Save list</button>
+              <button class="ghost-button" id="shareListButton" type="button">Share</button>
+              <a class="ghost-link" id="sourceLink" href="#" target="_blank" rel="noreferrer">Open source</a>
+            </div>
+          </aside>
         </section>
 
-        <section class="archive-band" aria-labelledby="archiveTitle">
-          <div>
-            <p class="panel-kicker">Archive</p>
-            <h2 id="archiveTitle">Quick rounds</h2>
+        <section class="consensus-band" aria-labelledby="consensusTitle">
+          <div class="section-heading">
+            <div>
+              <p class="eyebrow">Consensus</p>
+              <h2 id="consensusTitle">Places that keep showing up</h2>
+            </div>
+            <button class="ghost-button" id="copyConsensusButton" type="button">Copy top 5</button>
           </div>
-          <div class="archive-row" id="archiveRow"></div>
+          <div class="consensus-grid" id="consensusGrid"></div>
         </section>
       </main>
     </div>
 
-    <dialog class="modal" id="helpDialog">
-      <div class="modal-body">
-        <button class="icon-button modal-close" id="closeHelp" type="button" aria-label="Close">
-          <span aria-hidden="true">x</span>
-        </button>
-        <h2>Sort the five cards</h2>
+    <dialog class="modal" id="submitDialog">
+      <form class="modal-body" id="submitForm" method="dialog">
+        <button class="icon-button modal-close" id="closeSubmit" type="button" aria-label="Close">x</button>
+        <p class="eyebrow">Source queue</p>
+        <h2>Submit an influencer list</h2>
         <p>
-          Rank the five situations from the left label to the right label. There is no perfect
-          moral answer: your score shows how closely your order matches the crowd.
+          Paste a TikTok, Instagram, blog, or YouTube list. This beta keeps a local review queue;
+          the next backend step is a shared Supabase queue with owner approval.
         </p>
-      </div>
+        <label>
+          <span>Creator handle</span>
+          <input id="creatorInput" required placeholder="@seattlefoodperson" />
+        </label>
+        <label>
+          <span>Source URL</span>
+          <input id="urlInput" type="url" required placeholder="https://..." />
+        </label>
+        <div class="modal-grid">
+          <label>
+            <span>City</span>
+            <select id="submitCity"></select>
+          </label>
+          <label>
+            <span>Category</span>
+            <select id="submitCategory"></select>
+          </label>
+        </div>
+        <label>
+          <span>Notes</span>
+          <textarea id="notesInput" placeholder="What did they rank? Any standout places?"></textarea>
+        </label>
+        <button class="primary-button" type="submit">Add to queue</button>
+        <p class="status-line" id="submitStatus" role="status"></p>
+      </form>
     </dialog>
 
-    <dialog class="modal" id="authDialog">
+    <dialog class="modal wide-modal" id="savedDialog">
       <div class="modal-body">
-        <button class="icon-button modal-close" id="closeAuth" type="button" aria-label="Close">
-          <span aria-hidden="true">x</span>
-        </button>
-        <div class="auth-brand">
-          <span class="brand-mark auth-brand-mark" aria-hidden="true">MT</span>
-          <span>
-            <strong>Mild Takes</strong>
-            <small>Daily crowd game</small>
-          </span>
-        </div>
-        <h2 id="authTitle">Save your streak</h2>
-        <p id="authDescription">
-          Sign in to persist your plays, appear on the leaderboard, and unlock owner reporting.
-        </p>
-        <div class="account-card" id="accountCard" hidden>
-          <span class="account-avatar" id="accountAvatar" aria-hidden="true">MT</span>
-          <span class="account-copy">
-            <strong id="accountName">Signed in</strong>
-            <small id="accountEmail"></small>
-          </span>
-        </div>
-        <div class="oauth-grid" id="oauthGrid">
-          <button class="google-auth-button" data-provider="google" type="button">
-            <span class="google-mark" aria-hidden="true">G</span>
-            <span>
-              <strong>Continue with Google</strong>
-              <small>Save your Mild Takes streak</small>
-            </span>
-          </button>
-        </div>
-        <button class="secondary-button sign-out-button" id="signOutButton" type="button" hidden>
-          Sign out
-        </button>
-        <p class="copy-status" id="authMessage" role="status"></p>
+        <button class="icon-button modal-close" id="closeSaved" type="button" aria-label="Close">x</button>
+        <p class="eyebrow">Saved</p>
+        <h2>Your saved lists</h2>
+        <div class="compact-list" id="savedList"></div>
       </div>
     </dialog>
 
-    <dialog class="modal" id="statsDialog">
+    <dialog class="modal" id="shareDialog">
       <div class="modal-body">
-        <button class="icon-button modal-close" id="closeStats" type="button" aria-label="Close">
-          <span aria-hidden="true">x</span>
-        </button>
-        <h2>Your stats</h2>
-        <dl class="stats-grid">
-          <div>
-            <dt>Played</dt>
-            <dd id="playsStat">0</dd>
-          </div>
-          <div>
-            <dt>Average</dt>
-            <dd id="avgStat">--</dd>
-          </div>
-          <div>
-            <dt>Best</dt>
-            <dd id="bestStat">--</dd>
-          </div>
-          <div>
-            <dt>Streak</dt>
-            <dd id="streakStat">0</dd>
-          </div>
-        </dl>
+        <button class="icon-button modal-close" id="closeShare" type="button" aria-label="Close">x</button>
+        <p class="eyebrow">Share</p>
+        <h2>Send this list</h2>
+        <textarea class="share-textarea" id="shareText" readonly></textarea>
+        <div class="share-actions" aria-label="Share options">
+          <button class="primary-button" data-share="copy" type="button">Copy</button>
+          <button class="ghost-button" data-share="native" type="button">Phone share</button>
+          <button class="ghost-button" data-share="x" type="button">X</button>
+          <button class="ghost-button" data-share="facebook" type="button">Facebook</button>
+          <button class="ghost-button" data-share="whatsapp" type="button">WhatsApp</button>
+        </div>
       </div>
     </dialog>
 
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <dialog class="modal wide-modal" id="adminDialog">
+      <div class="modal-body">
+        <button class="icon-button modal-close" id="closeAdmin" type="button" aria-label="Close">x</button>
+        <p class="eyebrow">Owner queue</p>
+        <h2>Submitted sources</h2>
+        <div class="compact-list" id="queueList"></div>
+      </div>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
     <script src="./config.js" defer></script>
     <script src="./app.js" defer></script>
   </body>

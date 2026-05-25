@@ -1,70 +1,57 @@
-# Mild Takes Live Setup
+# Local Five Live Setup
 
-## 1. Create Supabase
+## 1. Current static deploy
 
-1. Open the Supabase project `szzfjelpvuzttmtoftvx`.
-2. Open SQL Editor and run `supabase/schema.sql`.
-3. In Authentication > Providers, enable Google with your Google OAuth client ID and secret.
-4. Add your final site URL to Authentication > URL Configuration.
-
-## 2. Configure the app
-
-Edit `config.js`:
-
-```js
-window.MILD_TAKES_CONFIG = {
-  ownerEmail: "mishaberman@gmail.com",
-  supabaseUrl: "https://szzfjelpvuzttmtoftvx.supabase.co",
-  supabaseAnonKey: "sb_publishable_g2lzudi0pANEnkhBQw6LbQ_93IuECXg",
-  gaMeasurementId: "G-SM2093RTRP",
-  metaPixelId: "1507406784184424",
-  siteUrl: "https://project-hfa4f.vercel.app/"
-};
-```
-
-The Supabase anon key is intended to be public. The database policies in
-`supabase/schema.sql` protect owner-only data.
-
-Never put the Supabase secret key in `config.js`, HTML, or browser JavaScript.
-
-## 3. Publish starter rounds
-
-After login as `mishaberman@gmail.com`, open the Admin button and click
-`Publish starter rounds`. This uploads the starter schedule into Supabase.
-
-## 4. Recommended Permanent Free Deploy
-
-Use Vercel for the first production deploy. This project is a static site, so
-there is no build command.
+This repo is still a static site. Vercel can deploy it with no install command, build command, or output directory.
 
 Current production URL:
 
 `https://project-hfa4f.vercel.app`
 
-1. Push this project to GitHub.
-2. In Vercel, connect the GitHub repository to `project-hfa4f`.
-3. Deploy from the `main` branch.
-4. Add the production URL to Supabase Authentication URL Configuration:
-   - Site URL: `https://project-hfa4f.vercel.app`
-   - Redirect URL allow list: `https://project-hfa4f.vercel.app/` and `https://project-hfa4f.vercel.app/*`
+## 2. Configure public settings
 
-For API deployment, create a Vercel token and run:
+Edit `config.js`:
 
-```bash
-VERCEL_TOKEN=YOUR_TOKEN node scripts/deploy-vercel-api.mjs
+```js
+window.LOCAL_FIVE_CONFIG = {
+  ownerEmail: "mishaberman@gmail.com",
+  supabaseUrl: "https://szzfjelpvuzttmtoftvx.supabase.co",
+  supabaseAnonKey: "YOUR_PUBLIC_ANON_KEY",
+  gaMeasurementId: "G-SM2093RTRP",
+  metaPixelId: "1507406784184424",
+  siteUrl: "https://project-hfa4f.vercel.app/"
+};
+
+window.MILD_TAKES_CONFIG = window.LOCAL_FIVE_CONFIG;
 ```
 
-Good alternatives:
+The public anon key can be used in browser code. Never put a Supabase secret key in `config.js`, HTML, or client-side JavaScript.
 
-- Cloudflare Pages: upload the folder as static assets.
-- Netlify: drag the project folder into Netlify Drop.
-- GitHub Pages: free for static files from a public repo.
+## 3. Optional owner queue mode
 
-## Launch Checklist
+Open:
 
-- Supabase schema applied.
-- Google OAuth redirect URLs match the deployed URL.
-- Google Analytics and Meta Pixel IDs added.
-- Admin login tested with `mishaberman@gmail.com`.
-- Daily leaderboard shows a test play.
-- First ad/sponsor placement added after the result reveal.
+`https://project-hfa4f.vercel.app/?owner=1`
+
+That reveals the owner queue button for this browser. It is only a local beta control until Supabase auth is connected again for the new product.
+
+## 4. Supabase next step
+
+Run `supabase/schema.sql` in the Supabase SQL editor when you want persistent storage for:
+
+- creator lists
+- list picks
+- submitted source links
+- lightweight events
+
+Then wire `app.js` to fetch approved lists from Supabase and insert submitted links into `source_submissions`.
+
+## 5. Recommended launch checklist
+
+- Replace starter sample links with real creator post URLs.
+- Add 25 to 50 Seattle lists before paid ads.
+- Create SEO pages for one city/category pair at a time.
+- Confirm Google Analytics and Meta Pixel are firing.
+- Test share links on iPhone and desktop.
+- Connect the Vercel GitHub app to `mishaberman/MildTakes` for automatic deploys from `main`.
+- Add a small local sponsor slot only after the main list view is useful.

@@ -2,7 +2,7 @@ import { readFile } from "node:fs/promises";
 
 const token = process.env.VERCEL_TOKEN;
 const teamId = process.env.VERCEL_TEAM_ID || "team_Fr6o95ec42bcjgSPQuBzh4yY";
-const projectName = process.env.VERCEL_PROJECT_NAME || "mild-takes";
+const projectName = process.env.VERCEL_PROJECT_NAME || "local-five";
 const projectId = process.env.VERCEL_PROJECT_ID || "prj_UdTGmsJkJsR5Iza7siDmBbrAwtJ6";
 
 if (!token) {

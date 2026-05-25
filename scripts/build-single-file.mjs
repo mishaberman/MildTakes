@@ -13,5 +13,5 @@ const inline = html
   .replace('<script src="./app.js" defer></script>', `<script>\n${app}\n</script>`);
 
 await mkdir("dist", { recursive: true });
-await writeFile("dist/mild-takes.html", inline);
-console.log("dist/mild-takes.html");
+await writeFile("dist/local-five.html", inline);
+console.log("dist/local-five.html");

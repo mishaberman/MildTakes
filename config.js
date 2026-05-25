@@ -1,4 +1,4 @@
-window.MILD_TAKES_CONFIG = {
+window.LOCAL_FIVE_CONFIG = {
   ownerEmail: "mishaberman@gmail.com",
   supabaseUrl: "https://szzfjelpvuzttmtoftvx.supabase.co",
   supabaseAnonKey: "sb_publishable_g2lzudi0pANEnkhBQw6LbQ_93IuECXg",
@@ -6,3 +6,5 @@ window.MILD_TAKES_CONFIG = {
   metaPixelId: "1507406784184424",
   siteUrl: "https://project-hfa4f.vercel.app/"
 };
+
+window.MILD_TAKES_CONFIG = window.LOCAL_FIVE_CONFIG;
