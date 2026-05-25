@@ -1935,14 +1935,6 @@ body.is-reordering {
     box-shadow: none;
   }
 
-  .rank-guide {
-    grid-template-columns: 1fr;
-  }
-
-  .rank-guide span:last-child {
-    text-align: left;
-  }
-
   .take-copy {
     grid-template-columns: minmax(0, 1fr);
   }
