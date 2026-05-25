@@ -676,6 +676,51 @@ function getAllSubmissions() {
   return [...seedRankings, ...loadStore().submissions];
 }
 
+function encodeShareSubmission(submission) {
+  const payload = {
+    v: 1,
+    city: submission.city,
+    category: submission.category,
+    placeIds: submission.placeIds.map(resolvePlaceId),
+    createdAt: submission.createdAt
+  };
+  return btoa(JSON.stringify(payload)).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
+}
+
+function decodeShareSubmission(submissionId) {
+  const params = new URLSearchParams(window.location.search);
+  const encoded = params.get("s");
+  if (!encoded) return null;
+  try {
+    const padded = encoded.replaceAll("-", "+").replaceAll("_", "/").padEnd(Math.ceil(encoded.length / 4) * 4, "=");
+    const payload = JSON.parse(atob(padded));
+    if (!Array.isArray(payload.placeIds) || payload.placeIds.length !== 5) return null;
+    const category = normalizeCategorySlug(payload.category);
+    const placeIds = payload.placeIds.map(resolvePlaceId).filter((placeId) => getPlace(placeId));
+    if (placeIds.length !== 5) return null;
+    return {
+      id: submissionId,
+      city: payload.city || "seattle",
+      category,
+      creatorSlug: null,
+      source: "shared_url",
+      visibility: "public",
+      createdAt: payload.createdAt || new Date().toISOString(),
+      placeIds
+    };
+  } catch {
+    return null;
+  }
+}
+
+function getSubmissionById(submissionId) {
+  return getAllSubmissions().find((item) => item.id === submissionId) || decodeShareSubmission(submissionId);
+}
+
+function shareUrlFor(submission) {
+  return absoluteUrl(`/rank/${submission.id}?s=${encodeShareSubmission(submission)}`);
+}
+
 function getSubmissionsFor(categorySlug, options = {}) {
   const normalized = normalizeCategorySlug(categorySlug);
   return getAllSubmissions().filter(
@@ -1119,14 +1164,14 @@ function renderCategoryPage(categorySlug) {
 }
 
 function renderRankPage(submissionId) {
-  const submission = getAllSubmissions().find((item) => item.id === submissionId);
+  const submission = getSubmissionById(submissionId);
   if (!submission) {
     setMeta("Ranking not found | Local Five", "Make your own Local Five ranking.");
     shell(`
       <main class="section-wrap">
         <div class="empty-state large">
-          <h1>That ranking is not on this device.</h1>
-          <p>Local Five share pages are local in this MVP. Make a fresh Top 5 and the link will work here.</p>
+          <h1>That ranking link is incomplete.</h1>
+          <p>Make a fresh Top 5 and use the share button so the link includes the ranking data.</p>
           <a class="primary-button" href="/seattle/pizza" data-link>Make your Top 5</a>
         </div>
       </main>
@@ -1814,9 +1859,7 @@ function getShareText(submission) {
   const picks = submission.placeIds
     .map((placeId, index) => `${index + 1}. ${getPlace(placeId)?.name || "Unknown place"}`)
     .join("\n");
-  return `I ranked my Top 5 ${category.name} spots in Seattle.\n${picks}\nSee if your list matches mine: ${absoluteUrl(
-    `/rank/${submission.id}`
-  )}`;
+  return `I ranked my Top 5 ${category.name} spots in Seattle.\n${picks}\nSee if your list matches mine: ${shareUrlFor(submission)}`;
 }
 
 async function copyText(text, message) {
@@ -1880,7 +1923,7 @@ function submitRanking(categorySlug) {
   saveStore({ ...store, submissions: [submission, ...store.submissions] });
   drafts[categorySlug] = { query: "", selected: [] };
   track("submit_ranking", { city: "seattle", category: categorySlug });
-  navigate(`/rank/${submission.id}`);
+  navigate(`/rank/${submission.id}?s=${encodeShareSubmission(submission)}`);
 }
 
 function suggestPlace(categorySlug) {
@@ -1943,17 +1986,17 @@ document.addEventListener("click", async (event) => {
   }
 
   if (action === "copy-share") {
-    const submission = getAllSubmissions().find((item) => item.id === actionButton.dataset.submissionId);
+    const submission = getSubmissionById(actionButton.dataset.submissionId);
     if (submission) copyText(getShareText(submission), "Share text copied.");
   }
 
   if (action === "native-share") {
-    const submission = getAllSubmissions().find((item) => item.id === actionButton.dataset.submissionId);
+    const submission = getSubmissionById(actionButton.dataset.submissionId);
     if (!submission) return;
     const text = getShareText(submission);
     if (navigator.share) {
       try {
-        await navigator.share({ title: "My Local Five", text, url: absoluteUrl(`/rank/${submission.id}`) });
+        await navigator.share({ title: "My Local Five", text, url: shareUrlFor(submission) });
       } catch {
         showToast("Share canceled.");
       }
