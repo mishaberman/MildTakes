@@ -530,15 +530,44 @@ h3 {
 }
 
 .drag-handle {
+  display: grid;
+  place-items: center;
   width: 52px;
   height: 42px;
   border: 2px solid var(--ink);
   border-radius: 10px;
   background: #fff3d6;
   color: var(--ink);
-  font-size: 0.78rem;
-  font-weight: 950;
   touch-action: none;
+}
+
+.drag-handle span,
+.drag-handle span::before,
+.drag-handle span::after {
+  display: block;
+  width: 22px;
+  height: 3px;
+  border-radius: 999px;
+  background: var(--ink);
+  content: "";
+}
+
+.drag-handle span {
+  position: relative;
+}
+
+.drag-handle span::before,
+.drag-handle span::after {
+  position: absolute;
+  left: 0;
+}
+
+.drag-handle span::before {
+  top: -8px;
+}
+
+.drag-handle span::after {
+  top: 8px;
 }
 
 .rank-copy strong,
@@ -980,6 +1009,46 @@ textarea:focus-visible {
   font-size: 0.82rem;
 }
 
+.avatar img {
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  object-fit: cover;
+}
+
+.account-profile {
+  align-items: start;
+}
+
+.account-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.google-button {
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.google-mark {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 999px;
+  background: #fff;
+  color: #4285f4;
+  font-weight: 950;
+  line-height: 1;
+}
+
+.text-link {
+  min-height: 32px;
+  margin-top: 8px;
+}
+
 .creator-stack,
 .table-list {
   display: grid;
@@ -1145,6 +1214,11 @@ textarea:focus-visible {
     display: none;
   }
 
+  .top-actions .account-nav {
+    display: inline-flex;
+    min-width: 82px;
+  }
+
   .top-actions .primary-button {
     min-width: 118px;
   }
@@ -1191,6 +1265,11 @@ textarea:focus-visible {
   .ghost-button,
   .ghost-link {
     width: 100%;
+  }
+
+  .top-actions .primary-button,
+  .top-actions .account-nav {
+    width: auto;
   }
 
   .category-grid,

@@ -10,6 +10,10 @@ const CONFIG = {
 
 const app = document.querySelector("#app");
 const toast = document.querySelector("#toast");
+let authClient = null;
+let authSession = null;
+let authUser = null;
+let authReady = false;
 const IMPORTED_SEED = window.LOCAL_FIVE_IMPORTED_SEED || {
   places: [],
   sources: [],
@@ -292,7 +296,7 @@ let seedRankings = [
   r("seed-date-night-1", "date-night", "sample-ava", ["spinasse", "walrus", "musang", "il-nido", "homer"])
 ];
 
-const drafts = {};
+let drafts = {};
 let nativeDrag = null;
 let pointerDrag = null;
 
@@ -607,17 +611,120 @@ function track(eventName, params = {}) {
   if (window.fbq) window.fbq("trackCustom", eventName, params);
 }
 
-function loadStore() {
+function defaultStore() {
+  return { submissions: [], suggestions: [], saved: [], drafts: {}, tone: "spicy" };
+}
+
+function userStorageKey(userId) {
+  return `${STORAGE_KEY}:user:${userId}`;
+}
+
+function activeStoreKey() {
+  return authUser?.id ? userStorageKey(authUser.id) : STORAGE_KEY;
+}
+
+function readStoreKey(key) {
   try {
-    const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return { submissions: [], suggestions: [], saved: [], tone: "spicy", ...parsed };
+    const parsed = JSON.parse(localStorage.getItem(key));
+    return { ...defaultStore(), ...parsed, drafts: { ...defaultStore().drafts, ...(parsed?.drafts || {}) } };
   } catch {
-    return { submissions: [], suggestions: [], saved: [], tone: "spicy" };
+    return defaultStore();
   }
 }
 
+function writeStoreKey(key, next) {
+  localStorage.setItem(key, JSON.stringify({ ...defaultStore(), ...next }));
+}
+
+function uniqueById(items) {
+  const seen = new Set();
+  return items.filter((item) => {
+    if (!item?.id || seen.has(item.id)) return false;
+    seen.add(item.id);
+    return true;
+  });
+}
+
+function mergeAnonymousStoreIntoProfile() {
+  if (!authUser?.id) return;
+  const anonymous = readStoreKey(STORAGE_KEY);
+  const userKey = userStorageKey(authUser.id);
+  const profile = readStoreKey(userKey);
+  const merged = {
+    ...profile,
+    submissions: uniqueById([...profile.submissions, ...anonymous.submissions]),
+    suggestions: uniqueById([...profile.suggestions, ...anonymous.suggestions]),
+    saved: uniqueById([...profile.saved, ...anonymous.saved]),
+    drafts: { ...anonymous.drafts, ...profile.drafts },
+    tone: profile.tone || anonymous.tone || "spicy"
+  };
+  writeStoreKey(userKey, merged);
+}
+
+function loadStore() {
+  return readStoreKey(activeStoreKey());
+}
+
 function saveStore(next) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+  writeStoreKey(activeStoreKey(), next);
+}
+
+function setAuthSession(session) {
+  const previousUserId = authUser?.id;
+  authSession = session;
+  authUser = session?.user || null;
+  if (authUser?.id) mergeAnonymousStoreIntoProfile();
+  if (previousUserId !== authUser?.id) drafts = {};
+}
+
+async function initAuth() {
+  if (!CONFIG.supabaseUrl || !CONFIG.supabaseAnonKey || !window.supabase?.createClient) {
+    authReady = true;
+    render();
+    return;
+  }
+
+  try {
+    authClient = window.supabase.createClient(CONFIG.supabaseUrl, CONFIG.supabaseAnonKey, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
+    });
+    const { data } = await authClient.auth.getSession();
+    setAuthSession(data.session);
+    authReady = true;
+    if (window.location.hash.includes("access_token")) {
+      window.history.replaceState({}, "", `${window.location.pathname}${window.location.search}`);
+    }
+    authClient.auth.onAuthStateChange((_event, session) => {
+      setAuthSession(session);
+      authReady = true;
+      render();
+    });
+  } catch {
+    authReady = true;
+  }
+  render();
+}
+
+async function signInWithGoogle() {
+  if (!authClient) {
+    showToast("Google sign-in is still loading.");
+    return;
+  }
+  const redirectTo = new URL(window.location.href);
+  redirectTo.hash = "";
+  const { error } = await authClient.auth.signInWithOAuth({
+    provider: "google",
+    options: { redirectTo: redirectTo.toString() }
+  });
+  if (error) showToast(error.message || "Could not start Google sign-in.");
+}
+
+async function signOut() {
+  if (!authClient) return;
+  await authClient.auth.signOut();
+  setAuthSession(null);
+  showToast("Signed out.");
+  render();
 }
 
 function showToast(message) {
@@ -668,8 +775,31 @@ function getPlacesFor(categorySlug) {
 }
 
 function getDraft(categorySlug) {
-  if (!drafts[categorySlug]) drafts[categorySlug] = { query: "", selected: [] };
-  return drafts[categorySlug];
+  const normalized = normalizeCategorySlug(categorySlug);
+  if (!drafts[normalized]) {
+    const savedDraft = loadStore().drafts?.[normalized] || {};
+    drafts[normalized] = {
+      query: savedDraft.query || "",
+      selected: (savedDraft.selected || []).map(resolvePlaceId).filter((placeId) => getPlace(placeId)).slice(0, 5)
+    };
+  }
+  return drafts[normalized];
+}
+
+function persistDraft(categorySlug) {
+  const normalized = normalizeCategorySlug(categorySlug);
+  const draft = getDraft(normalized);
+  const store = loadStore();
+  saveStore({
+    ...store,
+    drafts: {
+      ...(store.drafts || {}),
+      [normalized]: {
+        query: draft.query,
+        selected: draft.selected.map(resolvePlaceId)
+      }
+    }
+  });
 }
 
 function getAllSubmissions() {
@@ -958,6 +1088,7 @@ function getRoute() {
   if (parts[0] === "rank" && parts[1]) return { name: "rank", submissionId: parts[1] };
   if (parts[0] === "creator" && parts[1]) return { name: "creator", creatorSlug: parts[1], categorySlug: parts[2] };
   if ((parts[0] === "place" || parts[0] === "places") && parts[1]) return { name: "place", placeId: parts[1] };
+  if (parts[0] === "account") return { name: "account" };
   if (parts[0] === "admin") return { name: "admin" };
   return { name: "home" };
 }
@@ -986,8 +1117,28 @@ function isOwnerMode() {
   return localStorage.getItem("local-five-owner") === "1";
 }
 
+function authDisplayName() {
+  return authUser?.user_metadata?.full_name || authUser?.user_metadata?.name || authUser?.email || "Local Five user";
+}
+
+function authFirstName() {
+  return authDisplayName().split(" ")[0] || "Account";
+}
+
+function authAvatarUrl() {
+  return authUser?.user_metadata?.avatar_url || authUser?.user_metadata?.picture || "";
+}
+
+function avatarMarkup(name = "Local Five user", imageUrl = "", className = "") {
+  if (imageUrl) {
+    return `<span class="avatar ${className}"><img src="${escapeHtml(imageUrl)}" alt="" referrerpolicy="no-referrer" /></span>`;
+  }
+  return `<span class="avatar ${className}">${escapeHtml(initials(name))}</span>`;
+}
+
 function shell(mainHtml, options = {}) {
   const owner = isOwnerMode();
+  const accountLabel = authUser ? authFirstName() : "Sign in";
   app.innerHTML = `
     <div class="app-shell">
       <header class="topbar">
@@ -1002,6 +1153,7 @@ function shell(mainHtml, options = {}) {
           <a class="ghost-button" href="/seattle" data-link>Seattle</a>
           <a class="ghost-button" href="/creator/sample-maya" data-link>Creators</a>
           ${owner ? `<a class="ghost-button" href="/admin" data-link>Admin</a>` : ""}
+          <a class="ghost-button account-nav" href="/account" data-link>${escapeHtml(accountLabel)}</a>
           <a class="primary-button" href="/seattle/pizza" data-link>${options.cta || "Play Pizza"}</a>
         </nav>
       </header>
@@ -1413,6 +1565,119 @@ function renderPlacePage(placeId) {
   `);
 }
 
+function renderAccount() {
+  setMeta("Account | Local Five", "Sign in to save your Local Five rankings.");
+
+  if (!authReady) {
+    shell(`
+      <main class="section-wrap">
+        <div class="info-panel">
+          <p class="eyebrow">Account</p>
+          <h1>Loading your profile...</h1>
+          <p>Checking your Google sign-in.</p>
+        </div>
+      </main>
+    `);
+    return;
+  }
+
+  if (!authUser) {
+    shell(`
+      <main>
+        <section class="creator-band account-band">
+          <div class="creator-profile account-profile">
+            ${avatarMarkup("Local Five")}
+            <div>
+              <p class="eyebrow">Local Five account</p>
+              <h1>Save your lists.</h1>
+              <p>Sign in with Google to keep your drafts and finished rankings under one profile on this browser.</p>
+              <button class="primary-button google-button" type="button" data-action="google-sign-in">
+                <span class="google-mark" aria-hidden="true">G</span>
+                Continue with Google
+              </button>
+            </div>
+          </div>
+        </section>
+      </main>
+    `);
+    return;
+  }
+
+  const store = loadStore();
+  const profileName = authDisplayName();
+  const draftEntries = Object.entries(store.drafts || {}).filter(([, draft]) => draft?.selected?.length);
+  const recentSubmissions = store.submissions.slice(0, 8);
+
+  shell(`
+    <main>
+      <section class="creator-band account-band">
+        <div class="creator-profile account-profile">
+          ${avatarMarkup(profileName, authAvatarUrl(), "profile-avatar")}
+          <div>
+            <p class="eyebrow">Signed in</p>
+            <h1>${escapeHtml(profileName)}</h1>
+            <p>${escapeHtml(authUser.email || "")}</p>
+            <div class="account-actions">
+              <a class="primary-button" href="/seattle/pizza" data-link>Keep ranking</a>
+              <button class="ghost-button" type="button" data-action="sign-out">Sign out</button>
+            </div>
+          </div>
+        </div>
+      </section>
+      <section class="section-wrap dashboard-grid">
+        <div class="info-panel">
+          <p class="eyebrow">Saved drafts</p>
+          <h2>In-progress lists</h2>
+          <div class="table-list">
+            ${
+              draftEntries.length
+                ? draftEntries
+                    .map(([categorySlug, draft]) => {
+                      const category = getCategory(categorySlug);
+                      return `
+                        <div>
+                          <strong>${escapeHtml(category.name)}</strong>
+                          <span>${draft.selected.length}/5 selected</span>
+                          <a class="compact-link text-link" href="/seattle/${category.slug}" data-link>Continue</a>
+                        </div>
+                      `;
+                    })
+                    .join("")
+                : `<div><strong>No drafts yet.</strong><span>Start a ranking and your picks will save automatically.</span></div>`
+            }
+          </div>
+        </div>
+        <div class="info-panel">
+          <p class="eyebrow">Profile history</p>
+          <h2>Finished rankings</h2>
+          <div class="table-list">
+            ${
+              recentSubmissions.length
+                ? recentSubmissions
+                    .map((submission) => {
+                      const category = getCategory(submission.category);
+                      return `
+                        <div>
+                          <strong>${escapeHtml(category.name)} Top 5</strong>
+                          <span>${new Date(submission.createdAt).toLocaleDateString()} · ${submission.placeIds
+                        .map((placeId) => getPlace(placeId)?.name)
+                        .filter(Boolean)
+                        .slice(0, 2)
+                        .join(", ")}</span>
+                          <a class="compact-link text-link" href="${new URL(shareUrlFor(submission)).pathname}${new URL(shareUrlFor(submission)).search}" data-link>Open</a>
+                        </div>
+                      `;
+                    })
+                    .join("")
+                : `<div><strong>No finished rankings yet.</strong><span>Submit a Top 5 to build your profile.</span></div>`
+            }
+          </div>
+        </div>
+      </section>
+    </main>
+  `);
+}
+
 function renderAdmin() {
   const store = loadStore();
   setMeta("Admin Data | Local Five", "Local Five seed data dashboard.");
@@ -1484,6 +1749,7 @@ function render() {
   if (route.name === "rank") renderRankPage(route.submissionId);
   if (route.name === "creator") renderCreatorPage(route.creatorSlug);
   if (route.name === "place") renderPlacePage(route.placeId);
+  if (route.name === "account") renderAccount();
   if (route.name === "admin") renderAdmin();
 }
 
@@ -1573,7 +1839,9 @@ function renderEditor(categorySlug) {
               .map(
                 (place, index) => `
                   <article class="rank-item" draggable="true" data-place-id="${place.id}" data-category="${categorySlug}">
-                    <button class="drag-handle" type="button" aria-label="Drag ${escapeHtml(place.name)}">Grip</button>
+                    <button class="drag-handle" type="button" aria-label="Drag ${escapeHtml(place.name)} to reorder" title="Drag to reorder">
+                      <span aria-hidden="true"></span>
+                    </button>
                     <span class="rank-number">${index + 1}</span>
                     <span class="rank-copy">
                       <strong>${escapeHtml(place.name)}</strong>
@@ -1888,6 +2156,7 @@ function movePlace(categorySlug, placeId, direction) {
   const next = [...draft.selected];
   [next[index], next[nextIndex]] = [next[nextIndex], next[index]];
   draft.selected = next;
+  persistDraft(categorySlug);
   renderEditor(categorySlug);
 }
 
@@ -1903,6 +2172,7 @@ function reorderPlace(categorySlug, placeId, targetId, insertAfter = false) {
   if (from < insertIndex) insertIndex -= 1;
   next.splice(insertIndex, 0, moved);
   draft.selected = next;
+  persistDraft(categorySlug);
   renderEditor(categorySlug);
 }
 
@@ -1920,8 +2190,11 @@ function submitRanking(categorySlug) {
     placeIds: draft.selected.map(resolvePlaceId)
   };
   const store = loadStore();
-  saveStore({ ...store, submissions: [submission, ...store.submissions] });
-  drafts[categorySlug] = { query: "", selected: [] };
+  const normalized = normalizeCategorySlug(categorySlug);
+  const nextDrafts = { ...(store.drafts || {}) };
+  delete nextDrafts[normalized];
+  saveStore({ ...store, submissions: [submission, ...store.submissions], drafts: nextDrafts });
+  drafts[normalized] = { query: "", selected: [] };
   track("submit_ranking", { city: "seattle", category: categorySlug });
   navigate(`/rank/${submission.id}?s=${encodeShareSubmission(submission)}`);
 }
@@ -1939,6 +2212,7 @@ function suggestPlace(categorySlug) {
     suggestions: [{ id: crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}`, name, category: categorySlug, createdAt: new Date().toISOString() }, ...store.suggestions]
   });
   draft.query = "";
+  persistDraft(categorySlug);
   renderEditor(categorySlug);
   showToast("Suggested place added to the review queue.");
 }
@@ -1965,12 +2239,14 @@ document.addEventListener("click", async (event) => {
     if (draft.selected.length >= 5 || draft.selected.includes(placeId)) return;
     draft.selected = [...draft.selected, placeId];
     draft.query = "";
+    persistDraft(categorySlug);
     renderEditor(categorySlug);
   }
 
   if (action === "remove-place") {
     const draft = getDraft(categorySlug);
     draft.selected = draft.selected.filter((id) => id !== placeId);
+    persistDraft(categorySlug);
     renderEditor(categorySlug);
   }
 
@@ -1984,6 +2260,9 @@ document.addEventListener("click", async (event) => {
     saveStore({ ...store, tone: actionButton.dataset.tone || "spicy" });
     render();
   }
+
+  if (action === "google-sign-in") signInWithGoogle();
+  if (action === "sign-out") signOut();
 
   if (action === "copy-share") {
     const submission = getSubmissionById(actionButton.dataset.submissionId);
@@ -2011,6 +2290,7 @@ document.addEventListener("input", (event) => {
   if (!input) return;
   const categorySlug = input.dataset.placeSearch;
   getDraft(categorySlug).query = input.value;
+  persistDraft(categorySlug);
   renderEditor(categorySlug);
   const nextInput = document.querySelector("[data-place-search]");
   if (nextInput) {
@@ -2064,3 +2344,4 @@ window.addEventListener("popstate", render);
 
 initAnalytics();
 render();
+initAuth();

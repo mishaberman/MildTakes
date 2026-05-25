@@ -16,6 +16,7 @@ Current product surface:
 - Taste verdict/roast result pages
 - Attribute-based recommendations
 - Creator comparison seed data with public attribution hidden until verified
+- Google-only Supabase sign-in for the account/profile view
 
 ## Public Config
 
@@ -74,4 +75,5 @@ Then wire the app to:
 - Watch the completion rate from first place added to submitted Top 5.
 - Publish creator names only after opt-in.
 - Confirm GA and Meta Pixel events fire.
+- Confirm Supabase Auth redirect URLs include `https://project-hfa4f.vercel.app/*`.
 - Grant the Vercel GitHub app access to `mishaberman/MildTakes` so pushes auto-deploy.

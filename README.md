@@ -9,7 +9,7 @@ The current wedge is Seattle food. A visitor lands on a category prompt, makes a
 1. Pick a city/category prompt, starting with Seattle Pizza.
 2. Search and select exactly five places.
 3. Reorder the list with drag, touch, or up/down buttons.
-4. Submit the ranking without signing in.
+4. Sign in with Google if you want the profile view, or keep playing anonymously.
 5. See a taste verdict, city consensus, match score, boldest pick, taste twin, and recommendations.
 6. Share the ranking page.
 
@@ -28,6 +28,7 @@ The current wedge is Seattle food. A visitor lands on a category prompt, makes a
 - Playful safe roast/taste verdicts with tone controls
 - Attribute-based recommendation cards
 - Creator comparison data with unverified creator attribution hidden by default
+- Google-only Supabase auth with an account page for drafts and submitted rankings
 - LocalStorage submissions and suggested-place queue
 - Google Analytics and Meta Pixel hooks through `config.js`
 
