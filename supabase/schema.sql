@@ -72,6 +72,24 @@ create table if not exists public.places (
   website_url text,
   instagram_handle text,
   category_tags text[] not null default '{}',
+  description text,
+  why_local_five text,
+  verification_status text not null default 'seed_candidate_verify_with_places_api'
+    check (
+      verification_status in (
+        'seed_candidate_verify_with_places_api',
+        'needs_places_api_verification',
+        'needs_manual_verification',
+        'review_for_current_concept',
+        'exclude_closed',
+        'verified_active',
+        'creator_submitted',
+        'business_claimed'
+      )
+    ),
+  safe_to_publish_copy text not null default 'yes' check (safe_to_publish_copy in ('yes', 'needs_review')),
+  source_note text,
+  external_seed_id text,
   image_url text,
   is_chain boolean not null default false,
   is_active boolean not null default true,
@@ -81,6 +99,13 @@ create table if not exists public.places (
 
 create index if not exists places_city_active_idx on public.places(city_id, is_active);
 create index if not exists places_tags_idx on public.places using gin(category_tags);
+
+alter table public.places add column if not exists description text;
+alter table public.places add column if not exists why_local_five text;
+alter table public.places add column if not exists verification_status text not null default 'seed_candidate_verify_with_places_api';
+alter table public.places add column if not exists safe_to_publish_copy text not null default 'yes';
+alter table public.places add column if not exists source_note text;
+alter table public.places add column if not exists external_seed_id text;
 
 alter table public.places enable row level security;
 
@@ -95,6 +120,93 @@ on public.places for all
 using (public.is_owner())
 with check (public.is_owner());
 
+create table if not exists public.seed_sources (
+  id uuid primary key default gen_random_uuid(),
+  source_key text not null unique,
+  source_name text not null,
+  url text,
+  recommended_refresh_frequency text,
+  notes text,
+  created_at timestamptz not null default now()
+);
+
+alter table public.seed_sources enable row level security;
+
+drop policy if exists "seed sources readable" on public.seed_sources;
+create policy "seed sources readable"
+on public.seed_sources for select
+using (true);
+
+drop policy if exists "owner writes seed sources" on public.seed_sources;
+create policy "owner writes seed sources"
+on public.seed_sources for all
+using (public.is_owner())
+with check (public.is_owner());
+
+create table if not exists public.place_sources (
+  id uuid primary key default gen_random_uuid(),
+  place_id uuid not null references public.places(id) on delete cascade,
+  seed_source_id uuid references public.seed_sources(id) on delete set null,
+  source_url text,
+  source_label text,
+  source_note text,
+  created_at timestamptz not null default now(),
+  unique (place_id, source_url)
+);
+
+alter table public.place_sources enable row level security;
+
+drop policy if exists "public place sources readable" on public.place_sources;
+create policy "public place sources readable"
+on public.place_sources for select
+using (
+  exists (
+    select 1
+    from public.places
+    where places.id = place_sources.place_id
+      and (places.is_active = true or public.is_owner())
+  )
+);
+
+drop policy if exists "owner writes place sources" on public.place_sources;
+create policy "owner writes place sources"
+on public.place_sources for all
+using (public.is_owner())
+with check (public.is_owner());
+
+create table if not exists public.place_attributes (
+  place_id uuid primary key references public.places(id) on delete cascade,
+  cuisine_tags text[] not null default '{}',
+  item_tags text[] not null default '{}',
+  style_tags text[] not null default '{}',
+  texture_tags text[] not null default '{}',
+  vibe_tags text[] not null default '{}',
+  best_for text[] not null default '{}',
+  avoid_if text[] not null default '{}',
+  price_tier text check (price_tier in ('$', '$$', '$$$')),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.place_attributes enable row level security;
+
+drop policy if exists "public place attributes readable" on public.place_attributes;
+create policy "public place attributes readable"
+on public.place_attributes for select
+using (
+  exists (
+    select 1
+    from public.places
+    where places.id = place_attributes.place_id
+      and (places.is_active = true or public.is_owner())
+  )
+);
+
+drop policy if exists "owner writes place attributes" on public.place_attributes;
+create policy "owner writes place attributes"
+on public.place_attributes for all
+using (public.is_owner())
+with check (public.is_owner());
+
 create table if not exists public.creators (
   id uuid primary key default gen_random_uuid(),
   display_name text not null,
@@ -105,21 +217,95 @@ create table if not exists public.creators (
   avatar_url text,
   is_verified boolean not null default false,
   opt_in_status text not null default 'not_contacted'
-    check (opt_in_status in ('not_contacted', 'invited', 'opted_in', 'declined', 'mock')),
+    check (opt_in_status in ('not_contacted', 'invited', 'opted_in', 'declined', 'mock', 'not_verified_user_uploaded_data')),
+  public_attribution_enabled boolean not null default false,
+  display_fallback text,
   contact_method text,
   created_at timestamptz not null default now()
 );
+
+alter table public.creators add column if not exists public_attribution_enabled boolean not null default false;
+alter table public.creators add column if not exists display_fallback text;
+alter table public.creators drop constraint if exists creators_opt_in_status_check;
+alter table public.creators add constraint creators_opt_in_status_check
+check (opt_in_status in ('not_contacted', 'invited', 'opted_in', 'declined', 'mock', 'not_verified_user_uploaded_data'));
 
 alter table public.creators enable row level security;
 
 drop policy if exists "opted in creators readable" on public.creators;
 create policy "opted in creators readable"
 on public.creators for select
-using (opt_in_status in ('opted_in', 'mock') or public.is_owner());
+using (public_attribution_enabled = true or opt_in_status in ('opted_in', 'mock') or public.is_owner());
 
 drop policy if exists "owner writes creators" on public.creators;
 create policy "owner writes creators"
 on public.creators for all
+using (public.is_owner())
+with check (public.is_owner());
+
+create table if not exists public.creator_rankings (
+  id uuid primary key default gen_random_uuid(),
+  creator_id uuid references public.creators(id) on delete set null,
+  city_id uuid not null references public.cities(id) on delete cascade,
+  category_id uuid not null references public.categories(id) on delete cascade,
+  source_label text not null default 'creator_seed_imported',
+  source_url text,
+  opt_in_status text not null default 'not_verified_user_uploaded_data',
+  public_label text not null default 'Curated local foodie list',
+  is_public boolean not null default true,
+  imported_metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now()
+);
+
+create index if not exists creator_rankings_category_idx
+on public.creator_rankings(category_id, created_at desc);
+
+alter table public.creator_rankings enable row level security;
+
+drop policy if exists "public creator rankings readable" on public.creator_rankings;
+create policy "public creator rankings readable"
+on public.creator_rankings for select
+using (is_public = true or public.is_owner());
+
+drop policy if exists "owner writes creator rankings" on public.creator_rankings;
+create policy "owner writes creator rankings"
+on public.creator_rankings for all
+using (public.is_owner())
+with check (public.is_owner());
+
+create table if not exists public.creator_ranking_items (
+  id uuid primary key default gen_random_uuid(),
+  creator_ranking_id uuid not null references public.creator_rankings(id) on delete cascade,
+  place_id uuid references public.places(id) on delete set null,
+  place_name text not null,
+  rank_position integer check (rank_position between 1 and 5),
+  rank_status text,
+  creator_note text,
+  place_summary text,
+  tags text[] not null default '{}',
+  unique (creator_ranking_id, rank_position)
+);
+
+create index if not exists creator_ranking_items_ranking_idx
+on public.creator_ranking_items(creator_ranking_id, rank_position);
+
+alter table public.creator_ranking_items enable row level security;
+
+drop policy if exists "public creator ranking items readable" on public.creator_ranking_items;
+create policy "public creator ranking items readable"
+on public.creator_ranking_items for select
+using (
+  exists (
+    select 1
+    from public.creator_rankings
+    where creator_rankings.id = creator_ranking_items.creator_ranking_id
+      and (creator_rankings.is_public = true or public.is_owner())
+  )
+);
+
+drop policy if exists "owner writes creator ranking items" on public.creator_ranking_items;
+create policy "owner writes creator ranking items"
+on public.creator_ranking_items for all
 using (public.is_owner())
 with check (public.is_owner());
 

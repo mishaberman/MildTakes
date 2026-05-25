@@ -10,6 +10,41 @@ const CONFIG = {
 
 const app = document.querySelector("#app");
 const toast = document.querySelector("#toast");
+const IMPORTED_SEED = window.LOCAL_FIVE_IMPORTED_SEED || {
+  places: [],
+  sources: [],
+  creatorRankings: { creators: [], rankings: [] },
+  normalizedCreatorRows: []
+};
+const importedSourceById = new Map((IMPORTED_SEED.sources || []).map((source) => [source.sourceId, source]));
+const SHOW_UNVERIFIED_CREATOR_NAMES = false;
+const categoryAliases = {
+  date_night: "date-night",
+  doughnuts: "donuts",
+  fried_chicken: "fried-chicken",
+  ramen: "ramen-noodles",
+  noodles: "ramen-noodles"
+};
+const launchCategoryLabels = {
+  pizza: "Pizza",
+  teriyaki: "Teriyaki",
+  tacos: "Tacos",
+  bbq: "BBQ",
+  burgers: "Burgers",
+  coffee: "Coffee",
+  bakery: "Bakery",
+  brunch: "Brunch",
+  pho: "Pho",
+  "ramen-noodles": "Ramen + Noodles",
+  "date-night": "Date Night",
+  sandwiches: "Sandwiches",
+  donuts: "Donuts",
+  "fried-chicken": "Fried Chicken",
+  "chicken-sandwiches": "Chicken Sandwiches",
+  cookies: "Cookies",
+  bagels: "Bagels"
+};
+const placeIdAliases = {};
 
 const cities = [
   {
@@ -43,12 +78,30 @@ const categories = [
     description: "Quick stops, sit-down favorites, and late-night answers.",
     accent: "#c7563d"
   },
+  { slug: "bbq", name: "BBQ", day: "Smoke day", description: "Brisket, ribs, sides, and strong opinions.", accent: "#8f5a3f" },
   { slug: "pho", name: "Pho", day: "Rainy day", description: "Broth-first local comfort.", accent: "#9f7a36" },
   { slug: "burgers", name: "Burgers", day: "Weekend", description: "Classic, smash, fancy, and late-night.", accent: "#8d5f42" },
+  { slug: "donuts", name: "Donuts", day: "Treat run", description: "Glazed loyalty and pastry arguments.", accent: "#b56e8d" },
+  {
+    slug: "fried-chicken",
+    name: "Fried Chicken",
+    day: "Crunch time",
+    description: "Crunchy, juicy, spicy, saucy, and not subtle.",
+    accent: "#c67730"
+  },
+  {
+    slug: "chicken-sandwiches",
+    name: "Chicken Sandwiches",
+    day: "Lunch fight",
+    description: "Crispy sandwiches that become group-chat evidence.",
+    accent: "#bd7542"
+  },
+  { slug: "cookies", name: "Cookies", day: "Sweet take", description: "Tiny dessert, huge certainty.", accent: "#9e6b47" },
+  { slug: "bagels", name: "Bagels", day: "Morning take", description: "The boiled-and-baked Seattle debate.", accent: "#a8794c" },
   { slug: "coffee", name: "Coffee", day: "Morning", description: "The regular spots people defend.", accent: "#6d6756" },
   { slug: "brunch", name: "Brunch", day: "Sunday", description: "Worth the wait, or not.", accent: "#b97844" },
   { slug: "bakery", name: "Bakery", day: "Treat run", description: "Pastries, bread, and sweet opinions.", accent: "#a86758" },
-  { slug: "ramen", name: "Ramen", day: "Cold night", description: "Bowls that fix the weather.", accent: "#8f6fb0" },
+  { slug: "ramen-noodles", name: "Ramen + Noodles", day: "Cold night", description: "Bowls that fix the weather.", accent: "#8f6fb0" },
   {
     slug: "date-night",
     name: "Date Night",
@@ -58,7 +111,7 @@ const categories = [
   }
 ];
 
-const places = [
+let places = [
   p("moto", "Moto Pizza", "pizza", "West Seattle"),
   p("delancey", "Delancey", "pizza", "Ballard"),
   p("big-marios", "Big Mario's", "pizza", "Capitol Hill"),
@@ -175,7 +228,7 @@ const places = [
   p("the-pink-door", "The Pink Door", "date-night", "Pike Place")
 ];
 
-const creators = [
+let creators = [
   {
     slug: "sample-maya",
     displayName: "Maya Chen",
@@ -183,6 +236,8 @@ const creators = [
     city: "Seattle",
     bio: "Sample creator profile for testing food ranking pages.",
     optInStatus: "mock",
+    publicAttributionEnabled: false,
+    displayFallback: "Local Five seed list A",
     specialties: ["Pizza", "Teriyaki", "Coffee"]
   },
   {
@@ -192,6 +247,8 @@ const creators = [
     city: "Seattle",
     bio: "Sample South Seattle food personality used for product prototyping.",
     optInStatus: "mock",
+    publicAttributionEnabled: false,
+    displayFallback: "Local Five seed list B",
     specialties: ["Tacos", "Pho", "Burgers"]
   },
   {
@@ -201,11 +258,13 @@ const creators = [
     city: "Seattle",
     bio: "Sample weekend guide profile for brunch, bakeries, and date-night lists.",
     optInStatus: "mock",
+    publicAttributionEnabled: false,
+    displayFallback: "Local Five seed list C",
     specialties: ["Brunch", "Bakery", "Date Night"]
   }
 ];
 
-const seedRankings = [
+let seedRankings = [
   r("seed-pizza-1", "pizza", "sample-maya", ["moto", "delancey", "bar-del-corso", "dinos", "lupo"]),
   r("seed-pizza-2", "pizza", "sample-jordan", ["proletariat", "moto", "big-marios", "stevies-famous", "dinos"]),
   r("seed-pizza-3", "pizza", "admin", ["delancey", "moto", "serious-pie", "roccos", "sunny-hill"]),
@@ -238,22 +297,38 @@ let nativeDrag = null;
 let pointerDrag = null;
 
 function p(id, name, category, neighborhood) {
+  const normalizedCategory = normalizeCategorySlug(category);
   return {
     id,
     name,
     city: "seattle",
-    category,
+    category: normalizedCategory,
+    categorySlugs: [normalizedCategory],
     neighborhood,
+    description: "Seed place for Local Five launch testing.",
+    why: "Useful seed candidate for local Top 5 debates.",
+    tags: [normalizedCategory],
+    styleTags: [],
+    textureTags: [],
+    vibeTags: [],
+    bestFor: [],
+    creatorMentionedBy: [],
+    creatorSignals: [],
+    verificationStatus: "seed_candidate_verify_with_places_api",
+    safeToPublishCopy: "yes",
+    mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${name} Seattle, WA`)}`,
+    officialUrl: "",
     sourceUrl: "",
     note: "Seed place for Local Five launch testing."
   };
 }
 
 function r(id, category, creatorSlug, placeIds) {
+  const normalizedCategory = normalizeCategorySlug(category);
   return {
     id,
     city: "seattle",
-    category,
+    category: normalizedCategory,
     creatorSlug,
     source: creatorSlug === "admin" ? "admin_seed" : "creator_seed",
     visibility: "public",
@@ -261,6 +336,241 @@ function r(id, category, creatorSlug, placeIds) {
     placeIds
   };
 }
+
+function normalizeCategorySlug(slug = "") {
+  const normalized = slug
+    .toLowerCase()
+    .trim()
+    .replaceAll("&", "and")
+    .replaceAll("+", " ")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return categoryAliases[slug] || categoryAliases[normalized] || normalized;
+}
+
+function normalizeName(value = "") {
+  return value
+    .toLowerCase()
+    .replaceAll("&", "and")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function splitPipe(value = "") {
+  return value
+    .split("|")
+    .map((item) => normalizeCategorySlug(item))
+    .filter(Boolean);
+}
+
+function titleCaseSlug(slug) {
+  return slug
+    .split("-")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .join(" ");
+}
+
+function unique(items) {
+  return [...new Set(items.filter(Boolean))];
+}
+
+function addCategoryIfMissing(slug, label = titleCaseSlug(slug)) {
+  const normalized = normalizeCategorySlug(slug);
+  if (!launchCategoryLabels[normalized]) return;
+  if (categories.some((category) => category.slug === normalized)) return;
+  categories.push({
+    slug: normalized,
+    name: launchCategoryLabels[normalized] || label,
+    day: "New",
+    description: "A new Local Five food debate from the imported seed pack.",
+    accent: "#7b6bb2"
+  });
+}
+
+function getPublicCreatorName(creator) {
+  if (!creator) return "Curated local foodie list";
+  if (creator.publicAttributionEnabled || SHOW_UNVERIFIED_CREATOR_NAMES) return creator.displayName;
+  return creator.displayFallback || "Curated local foodie list";
+}
+
+function getCreatorBadgeLabel(slug) {
+  const creator = getCreator(slug);
+  if (!creator) return "Foodie pick";
+  if (creator.publicAttributionEnabled || SHOW_UNVERIFIED_CREATOR_NAMES) {
+    return `${creator.displayName.split(" ")[0]} pick`;
+  }
+  return "Foodie pick";
+}
+
+function getSourceInfo(place) {
+  const source = importedSourceById.get(place.sourceName) || importedSourceById.get(place.sourceId);
+  return {
+    label: source?.sourceName || (place.sourceName ? titleCaseSlug(place.sourceName) : "Discovery source"),
+    url: place.sourceUrl || source?.url || ""
+  };
+}
+
+function routeForPlace(placeId) {
+  return `/places/${encodeURIComponent(resolvePlaceId(placeId))}`;
+}
+
+function resolvePlaceId(id) {
+  return placeIdAliases[id] || id;
+}
+
+function mapImportedPlace(row) {
+  const categorySlugs = unique([
+    normalizeCategorySlug(row.primaryCategory),
+    ...splitPipe(row.secondaryCategories),
+    ...splitPipe(row.suggestedPromptSlugs)
+  ]);
+  categorySlugs.forEach((slug) => {
+    if (["closed-reference", "closed_reference"].includes(slug)) return;
+    addCategoryIfMissing(slug);
+  });
+  const tags = unique([...splitPipe(row.secondaryCategories), ...splitPipe(row.suggestedPromptSlugs)]).slice(0, 10);
+  return {
+    id: row.placeId,
+    name: row.placeName,
+    city: "seattle",
+    category: normalizeCategorySlug(row.primaryCategory),
+    categorySlugs,
+    neighborhood: row.neighborhoodOrArea || "Seattle",
+    description: row.oneLineDescription || "Seed place for Local Five launch testing.",
+    why: row.whyItMattersForRankbites || "Useful seed candidate for local Top 5 debates.",
+    tags,
+    styleTags: tags.filter((tag) => !["pizza", "tacos", "bbq", "burgers", "coffee"].includes(tag)),
+    textureTags: tags.filter((tag) => /(crispy|crunchy|airy|flaky|buttery|crust|juicy)/.test(tag)),
+    vibeTags: tags.filter((tag) => /(hidden|classic|late|date|patio|family|drive|neighborhood)/.test(tag)),
+    bestFor: tags.slice(0, 3),
+    creatorMentionedBy: [],
+    creatorSignals: [],
+    addressHint: row.addressHint,
+    officialUrl: row.officialUrl,
+    mapUrl: row.googleMapsQueryUrl,
+    sourceId: row.primarySourceName,
+    sourceName: row.primarySourceName,
+    sourceUrl: row.primarySourceUrl,
+    sourceNote: row.sourceRecencyOrNote,
+    verificationStatus: row.verificationStatus,
+    safeToPublishCopy: row.safeToPublishCopy,
+    usageNotes: row.codexUsageNotes,
+    isImported: true
+  };
+}
+
+function mergeImportedSeed() {
+  const importedPlaces = IMPORTED_SEED.places.map(mapImportedPlace);
+  const importedByName = new Map();
+
+  importedPlaces.forEach((place) => {
+    place.categorySlugs.forEach((slug) => importedByName.set(`${normalizeName(place.name)}|${slug}`, place.id));
+  });
+
+  places.forEach((place) => {
+    const richId = importedByName.get(`${normalizeName(place.name)}|${normalizeCategorySlug(place.category)}`);
+    if (richId) placeIdAliases[place.id] = richId;
+  });
+
+  const filteredFallbackPlaces = places.filter((place) => {
+    const key = `${normalizeName(place.name)}|${normalizeCategorySlug(place.category)}`;
+    return !importedByName.has(key);
+  });
+
+  places = [...importedPlaces, ...filteredFallbackPlaces];
+
+  (IMPORTED_SEED.normalizedCreatorRows || []).forEach((row) => {
+    if (getPlace(row.placeId)) return;
+    const category = normalizeCategorySlug(row.categorySlug);
+    addCategoryIfMissing(category, row.categoryLabel);
+    const tags = unique([category, ...(row.tasteTags || "").split("|").map(normalizeCategorySlug)]);
+    places.push({
+      id: row.placeId,
+      name: row.canonicalPlaceName || row.originalPlaceNameFromUpload,
+      city: "seattle",
+      category,
+      categorySlugs: unique([category]),
+      neighborhood: row.neighborhoodOrAreaHint || "Seattle",
+      description: row.placeDetailSummaryFromUpload || "Imported creator-ranking seed place.",
+      why: row.creatorFeedbackSummary || "Appears in an imported Local Five creator comparison seed.",
+      tags,
+      styleTags: unique((row.recommendationAttributes || "").split("|").map(normalizeCategorySlug)),
+      textureTags: tags.filter((tag) => /(crispy|crunchy|airy|flaky|buttery|crust|juicy)/.test(tag)),
+      vibeTags: tags.filter((tag) => /(hidden|classic|hype|late|neighborhood|creator|institution)/.test(tag)),
+      bestFor: tags.slice(0, 3),
+      creatorMentionedBy: [],
+      creatorSignals: [],
+      officialUrl: "",
+      mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${row.canonicalPlaceName || row.originalPlaceNameFromUpload} Seattle, WA`)}`,
+      sourceName: "user_uploaded_creator_seed",
+      sourceUrl: "",
+      verificationStatus: "needs_creator_source_and_places_verification",
+      safeToPublishCopy: "yes",
+      isImported: true
+    });
+  });
+
+  const creatorSeed = IMPORTED_SEED.creatorRankings || { creators: [], rankings: [] };
+  creatorSeed.creators.forEach((creator, index) => {
+    if (creators.some((item) => item.slug === creator.creator_id)) return;
+    creators.push({
+      slug: creator.creator_id,
+      displayName: creator.display_name,
+      handle: creator.handle_to_verify || "",
+      city: "Seattle",
+      bio: creator.disclaimer,
+      optInStatus: creator.opt_in_status,
+      publicAttributionEnabled: Boolean(SHOW_UNVERIFIED_CREATOR_NAMES),
+      specialties: creatorSeed.rankings
+        .filter((ranking) => ranking.creator_id === creator.creator_id)
+        .map((ranking) => getCategory(normalizeCategorySlug(ranking.category_slug)).name),
+      displayFallback: `Curated foodie list ${index + 1}`
+    });
+  });
+
+  creatorSeed.rankings.forEach((ranking) => {
+    const categorySlug = normalizeCategorySlug(ranking.category_slug);
+    addCategoryIfMissing(categorySlug, ranking.category_label);
+    const placeIds = ranking.items.map((item) => item.place_id).filter((placeId) => getPlace(placeId)).slice(0, 5);
+    if (!placeIds.length) return;
+    seedRankings.push({
+      id: `imported-${ranking.creator_id}-${categorySlug}`,
+      city: "seattle",
+      category: categorySlug,
+      creatorSlug: ranking.creator_id,
+      source: "creator_seed_imported",
+      visibility: "public",
+      createdAt: IMPORTED_SEED.creatorRankings.generated_at || "2026-05-25T00:00:00.000Z",
+      placeIds,
+      items: ranking.items
+    });
+  });
+
+  (IMPORTED_SEED.normalizedCreatorRows || []).forEach((row) => {
+    const place = getPlace(row.placeId);
+    if (!place) return;
+    const tags = unique([...(place.tags || []), ...(row.tasteTags || "").split("|").map(normalizeCategorySlug)]);
+    place.tags = tags;
+    place.styleTags = unique([...(place.styleTags || []), ...(row.recommendationAttributes || "").split("|").map(normalizeCategorySlug)]);
+    place.textureTags = unique([...(place.textureTags || []), ...tags.filter((tag) => /(crispy|crunchy|airy|flaky|buttery|crust|juicy)/.test(tag))]);
+    place.vibeTags = unique([...(place.vibeTags || []), ...tags.filter((tag) => /(hidden|classic|hype|late|neighborhood|creator|institution)/.test(tag))]);
+    place.creatorMentionedBy = unique([...(place.creatorMentionedBy || []), row.creatorId]);
+    place.creatorSignals = [
+      ...(place.creatorSignals || []),
+      {
+        creatorId: row.creatorId,
+        category: normalizeCategorySlug(row.categorySlug),
+        rankPosition: row.rankPosition ? Number(row.rankPosition) : null,
+        rankStatus: row.rankStatusRaw,
+        summary: row.creatorFeedbackSummary
+      }
+    ];
+    if (!place.description && row.placeDetailSummaryFromUpload) place.description = row.placeDetailSummaryFromUpload;
+  });
+}
+
+mergeImportedSeed();
 
 function initAnalytics() {
   if (CONFIG.gaMeasurementId && !window.gtag) {
@@ -300,9 +610,9 @@ function track(eventName, params = {}) {
 function loadStore() {
   try {
     const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
-    return { submissions: [], suggestions: [], saved: [], ...parsed };
+    return { submissions: [], suggestions: [], saved: [], tone: "spicy", ...parsed };
   } catch {
-    return { submissions: [], suggestions: [], saved: [] };
+    return { submissions: [], suggestions: [], saved: [], tone: "spicy" };
   }
 }
 
@@ -327,11 +637,21 @@ function escapeHtml(value) {
 }
 
 function getCategory(slug) {
-  return categories.find((category) => category.slug === slug) || categories[0];
+  const normalized = normalizeCategorySlug(slug);
+  return (
+    categories.find((category) => category.slug === normalized) || {
+      slug: normalized,
+      name: launchCategoryLabels[normalized] || titleCaseSlug(normalized),
+      day: "Seed",
+      description: "Imported seed category.",
+      accent: "#7b6bb2"
+    }
+  );
 }
 
 function getPlace(id) {
-  return places.find((place) => place.id === id);
+  const resolved = resolvePlaceId(id);
+  return places.find((place) => place.id === resolved);
 }
 
 function getCreator(slug) {
@@ -339,7 +659,12 @@ function getCreator(slug) {
 }
 
 function getPlacesFor(categorySlug) {
-  return places.filter((place) => place.city === "seattle" && place.category === categorySlug);
+  const normalized = normalizeCategorySlug(categorySlug);
+  const owner = isOwnerMode();
+  return places
+    .filter((place) => place.city === "seattle" && (place.categorySlugs || [place.category]).includes(normalized))
+    .filter((place) => place.verificationStatus !== "exclude_closed")
+    .filter((place) => owner || place.safeToPublishCopy !== "needs_review");
 }
 
 function getDraft(categorySlug) {
@@ -352,10 +677,11 @@ function getAllSubmissions() {
 }
 
 function getSubmissionsFor(categorySlug, options = {}) {
+  const normalized = normalizeCategorySlug(categorySlug);
   return getAllSubmissions().filter(
     (submission) =>
       submission.city === "seattle" &&
-      submission.category === categorySlug &&
+      normalizeCategorySlug(submission.category) === normalized &&
       (!options.excludeId || submission.id !== options.excludeId)
   );
 }
@@ -364,9 +690,10 @@ function getAggregate(categorySlug, options = {}) {
   const score = new Map();
   getSubmissionsFor(categorySlug, options).forEach((submission) => {
     submission.placeIds.forEach((placeId, index) => {
-      const place = getPlace(placeId);
+      const resolvedId = resolvePlaceId(placeId);
+      const place = getPlace(resolvedId);
       if (!place) return;
-      const item = score.get(placeId) || {
+      const item = score.get(resolvedId) || {
         place,
         totalPoints: 0,
         rankCount: 0,
@@ -379,7 +706,7 @@ function getAggregate(categorySlug, options = {}) {
       item.rankTotal += index + 1;
       if (index === 0) item.firstPlaceCount += 1;
       if (index < 3) item.topThreeCount += 1;
-      score.set(placeId, item);
+      score.set(resolvedId, item);
     });
   });
 
@@ -397,10 +724,11 @@ function getSubmissionStats(submission) {
   const consensus = getAggregate(submission.category, { excludeId: submission.id });
   const rankMap = new Map(consensus.map((item) => [item.place.id, item.cityRank]));
   const topFive = consensus.slice(0, 5).map((item) => item.place.id);
-  const overlap = submission.placeIds.filter((placeId) => topFive.includes(placeId)).length;
-  const exact = submission.placeIds.filter((placeId, index) => topFive[index] === placeId).length;
+  const resolvedPlaceIds = submission.placeIds.map(resolvePlaceId);
+  const overlap = resolvedPlaceIds.filter((placeId) => topFive.includes(placeId)).length;
+  const exact = resolvedPlaceIds.filter((placeId, index) => topFive[index] === placeId).length;
   const maxRank = Math.max(consensus.length + 1, 10);
-  const rankedPicks = submission.placeIds.map((placeId, index) => {
+  const rankedPicks = resolvedPlaceIds.map((placeId, index) => {
     const place = getPlace(placeId);
     const cityRank = rankMap.get(placeId) || maxRank;
     return {
@@ -412,20 +740,168 @@ function getSubmissionStats(submission) {
   });
   const boldest = rankedPicks.sort((a, b) => b.boldGap - a.boldGap)[0];
   const twin = getTasteTwin(submission);
+  const creatorMatches = getCreatorMatches(submission);
+  const creatorConsensusMiss = getCreatorConsensusMiss(submission);
   const score = Math.round((overlap / 5) * 90 + (exact / 5) * 10);
-  return { consensus, overlap, exact, boldest, twin, score };
+  return { consensus, overlap, exact, boldest, twin, score, creatorMatches, creatorConsensusMiss };
 }
 
 function getTasteTwin(submission) {
   const candidates = seedRankings.filter((item) => item.category === submission.category && item.id !== submission.id);
+  const userIds = submission.placeIds.map(resolvePlaceId);
   let best = null;
   candidates.forEach((candidate) => {
-    const overlap = submission.placeIds.filter((placeId) => candidate.placeIds.includes(placeId)).length;
-    const exact = submission.placeIds.filter((placeId, index) => candidate.placeIds[index] === placeId).length;
+    const candidateIds = candidate.placeIds.map(resolvePlaceId);
+    const overlap = userIds.filter((placeId) => candidateIds.includes(placeId)).length;
+    const exact = userIds.filter((placeId, index) => candidateIds[index] === placeId).length;
     const score = overlap * 10 + exact * 7;
     if (!best || score > best.score) best = { ...candidate, overlap, exact, score };
   });
   return best;
+}
+
+function getCreatorMatches(submission) {
+  const userIds = submission.placeIds.map(resolvePlaceId);
+  const bestByCreator = new Map();
+  seedRankings
+    .filter((ranking) => ranking.creatorSlug && ranking.creatorSlug !== "admin")
+    .filter((ranking) => ranking.category === normalizeCategorySlug(submission.category))
+    .forEach((ranking) => {
+      const creatorIds = ranking.placeIds.map(resolvePlaceId);
+      const overlapIds = userIds.filter((placeId) => creatorIds.includes(placeId));
+      const exact = userIds.filter((placeId, index) => creatorIds[index] === placeId).length;
+      const near = overlapIds.filter((placeId) => Math.abs(userIds.indexOf(placeId) - creatorIds.indexOf(placeId)) <= 1).length;
+      if (!overlapIds.length) return;
+      const match = {
+        ranking,
+        creator: getCreator(ranking.creatorSlug),
+        overlapIds,
+        overlap: overlapIds.length,
+        exact,
+        score: overlapIds.length * 20 + exact * 10 + near * 4
+      };
+      const previous = bestByCreator.get(ranking.creatorSlug);
+      if (!previous || match.score > previous.score) bestByCreator.set(ranking.creatorSlug, match);
+    });
+
+  return [...bestByCreator.values()]
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 4);
+}
+
+function getCreatorConsensusPicks(categorySlug) {
+  const counts = new Map();
+  seedRankings
+    .filter((ranking) => ranking.creatorSlug && ranking.creatorSlug !== "admin")
+    .filter((ranking) => ranking.category === normalizeCategorySlug(categorySlug))
+    .forEach((ranking) => {
+      ranking.placeIds.map(resolvePlaceId).forEach((placeId, index) => {
+        const item = counts.get(placeId) || { placeId, mentions: 0, firsts: 0, creators: new Set() };
+        item.mentions += 1;
+        if (index === 0) item.firsts += 1;
+        item.creators.add(ranking.creatorSlug);
+        counts.set(placeId, item);
+      });
+    });
+  return [...counts.values()]
+    .filter((item) => item.mentions >= 2 || item.firsts > 0)
+    .sort((a, b) => b.mentions + b.firsts - (a.mentions + a.firsts));
+}
+
+function getCreatorConsensusMiss(submission) {
+  const userIds = new Set(submission.placeIds.map(resolvePlaceId));
+  return getCreatorConsensusPicks(submission.category).find((item) => !userIds.has(item.placeId));
+}
+
+function getTasteVerdict(submission, stats, tone = loadStore().tone || "spicy") {
+  const category = getCategory(submission.category);
+  const creatorMissPlace = stats.creatorConsensusMiss ? getPlace(stats.creatorConsensusMiss.placeId) : null;
+  const boldest = stats.boldest?.place;
+  const safePicks = stats.overlap >= 4;
+  const chaos = Math.max(0, 100 - stats.score);
+
+  let title = "Respectably Debatable";
+  let roast = `Your ${category.name.toLowerCase()} list has enough consensus to be useful and enough personality to start one group chat argument.`;
+  let badges = ["Useful list", "Some debate"];
+  let shareLine = `I ranked Seattle ${category.name.toLowerCase()} and survived the Local Five verdict.`;
+
+  if (safePicks) {
+    title = "Suspiciously Correct";
+    roast = "You matched the city a little too well. This is either excellent taste or you built this list by asking five people already standing in line.";
+    badges = ["City-approved", "Low chaos", "Safe but solid"];
+    shareLine = `I ranked Seattle ${category.name.toLowerCase()} and apparently I am annoyingly reasonable.`;
+  } else if (stats.overlap <= 1) {
+    title = "Food Court Defendant";
+    roast = "Your list disagrees with Seattle and probably at least one person currently yelling in a comment section. It is not boring, though.";
+    badges = ["Chaos pick", "Contrarian", "Argument starter"];
+    shareLine = `I ranked Seattle ${category.name.toLowerCase()} and the city may need to intervene.`;
+  } else if (creatorMissPlace) {
+    title = "Creator Consensus Violation";
+    roast = `Skipping ${creatorMissPlace.name} is a choice. Not necessarily a good one, but definitely a choice.`;
+    badges = ["Missed foodie pick", "Bold omission"];
+    shareLine = `I skipped a Local Five foodie favorite and lived to tell the tale.`;
+  } else if (boldest && stats.boldest.cityRank >= 10) {
+    title = "Brave, Possibly Wrong";
+    roast = `Putting ${boldest.name} at #${stats.boldest.userRank} while the city has it at #${stats.boldest.cityRank} is the kind of confidence this app was built to document.`;
+    badges = ["Bold take", "High conviction"];
+    shareLine = `My Local Five list contains one deeply documented food opinion.`;
+  }
+
+  if (tone === "mild") {
+    roast = roast.replace("wrong", "debatable").replace("intervene", "discuss this").replace("Food Court Defendant", "Independent Thinker");
+  }
+
+  if (tone === "unhinged_safe") {
+    roast += " The spreadsheet is concerned, but the bit is working.";
+    badges = [...badges, "Drama seasoning"];
+  }
+
+  return { title, roast, scoreLabel: "Chaos score", scoreValue: chaos, badges, shareLine, tone };
+}
+
+function getRecommendations(submission, stats) {
+  const selectedIds = new Set(submission.placeIds.map(resolvePlaceId));
+  const selectedPlaces = submission.placeIds.map(getPlace).filter(Boolean);
+  const selectedTags = new Set(
+    selectedPlaces.flatMap((place) => [
+      ...(place.tags || []),
+      ...(place.styleTags || []),
+      ...(place.textureTags || []),
+      ...(place.vibeTags || [])
+    ])
+  );
+  const selectedNeighborhoods = new Set(selectedPlaces.map((place) => place.neighborhood).filter(Boolean));
+  const consensusRanks = new Map(stats.consensus.map((item) => [item.place.id, item.cityRank]));
+
+  return getPlacesFor(submission.category)
+    .filter((place) => !selectedIds.has(place.id))
+    .map((place) => {
+      const placeTags = unique([...(place.tags || []), ...(place.styleTags || []), ...(place.textureTags || []), ...(place.vibeTags || [])]);
+      const shared = placeTags.filter((tag) => selectedTags.has(tag));
+      const creatorConsensusBonus = (place.creatorMentionedBy || []).length >= 2 ? 2 : 0;
+      const neighborhoodDiversityBonus = selectedNeighborhoods.has(place.neighborhood) ? 0 : 0.5;
+      const cityPopularityBonus = consensusRanks.has(place.id) ? Math.max(0.2, (8 - consensusRanks.get(place.id)) / 10) : 0;
+      const score = 4 + shared.length * 1.6 + creatorConsensusBonus + neighborhoodDiversityBonus + cityPopularityBonus;
+      return {
+        place,
+        score,
+        shared,
+        reason: recommendationReason(place, selectedPlaces, shared, creatorConsensusBonus)
+      };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, 5);
+}
+
+function recommendationReason(place, selectedPlaces, shared, creatorConsensusBonus) {
+  const anchors = selectedPlaces.slice(0, 2).map((item) => item.name).join(" and ");
+  if (shared.length) {
+    return `Because you picked ${anchors}, you seem to like ${shared.slice(0, 3).map(titleCaseSlug).join(", ")}. ${place.name} fits that lane.`;
+  }
+  if (creatorConsensusBonus) {
+    return `${place.name} has creator-overlap energy, which makes it the next logical argument.`;
+  }
+  return `${place.name} gives your list a different neighborhood and a new data point for the next debate.`;
 }
 
 function getRoute() {
@@ -436,6 +912,7 @@ function getRoute() {
   if (parts[0] === "seattle" && parts[1]) return { name: "category", categorySlug: parts[1] };
   if (parts[0] === "rank" && parts[1]) return { name: "rank", submissionId: parts[1] };
   if (parts[0] === "creator" && parts[1]) return { name: "creator", creatorSlug: parts[1], categorySlug: parts[2] };
+  if ((parts[0] === "place" || parts[0] === "places") && parts[1]) return { name: "place", placeId: parts[1] };
   if (parts[0] === "admin") return { name: "admin" };
   return { name: "home" };
 }
@@ -473,7 +950,7 @@ function shell(mainHtml, options = {}) {
           <span class="brand-mark">L5</span>
           <span>
             <strong>Local Five</strong>
-            <small>Your city's Top 5, ranked by locals</small>
+            <small>Your city's Top 5, judged by locals</small>
           </span>
         </a>
         <nav class="top-actions" aria-label="Primary">
@@ -491,7 +968,7 @@ function shell(mainHtml, options = {}) {
 function renderHome() {
   setMeta(
     "Local Five | Rank your city's Top 5 food spots",
-    "Pick your favorites, compare with locals and creators, and share your Local Five list."
+    "Pick your favorites, get roasted, compare with local foodies, and discover where to eat next."
   );
   const featured = getCategory("pizza");
   shell(`
@@ -501,7 +978,7 @@ function renderHome() {
           <div class="hero-copy">
             <p class="eyebrow">Seattle beta</p>
             <h1>Rank your city's Top 5 food spots.</h1>
-            <p>Pick your favorites, compare with locals and creators, and share your list.</p>
+            <p>Pick your favorites, get roasted, compare with local foodie lists, and discover where to eat next.</p>
             <div class="hero-actions">
               <a class="primary-button" href="/seattle/pizza" data-link>Play Seattle Pizza</a>
               <a class="ghost-link" href="/seattle" data-link>Explore Seattle rankings</a>
@@ -510,7 +987,7 @@ function renderHome() {
           <div class="feature-card" style="--accent: ${featured.accent}">
             <span class="feature-kicker">Today's challenge</span>
             <h2>Seattle's Best Pizza</h2>
-            <p>Make your Top 5. Then see if the city agrees.</p>
+            <p>Make your Top 5. Then get the verdict, the consensus, and places to try next.</p>
             ${miniConsensus("pizza")}
           </div>
         </div>
@@ -530,7 +1007,7 @@ function renderHome() {
         <div class="info-panel">
           <p class="eyebrow">How it works</p>
           <h2>Make your Top 5. Compare. Share.</h2>
-          <p>Local Five uses ranked lists instead of star ratings. Your #1 gets five points, your #5 gets one point, and the city scoreboard updates from those tradeoffs.</p>
+          <p>Local Five uses ranked lists instead of star ratings. Your #1 gets five points, your #5 gets one point, then the app judges the list and explains what to eat next.</p>
         </div>
         <div class="info-panel">
           <p class="eyebrow">No login wall</p>
@@ -606,7 +1083,7 @@ function renderCategoryPage(categorySlug) {
           <div>
             <p class="eyebrow">Seattle food challenge</p>
             <h1>Seattle's Best ${escapeHtml(category.name)}</h1>
-            <p>Make your Top 5. Then see if the city agrees.</p>
+            <p>Make your Top 5. Then get roasted, compare with local foodie lists, and find your next spot.</p>
           </div>
           <div class="prompt-stat">
             <strong>${getSubmissionsFor(category.slug).length}</strong>
@@ -630,6 +1107,10 @@ function renderCategoryPage(categorySlug) {
           <h2>Current Top 5</h2>
           ${leaderboardPreview(category.slug)}
           ${methodologyNote()}
+          <div class="method-card">
+            <strong>Seed note</strong>
+            <p>These place details are seed listings. Check hours and details before visiting.</p>
+          </div>
         </aside>
       </section>
     </main>
@@ -655,6 +1136,8 @@ function renderRankPage(submissionId) {
 
   const category = getCategory(submission.category);
   const stats = getSubmissionStats(submission);
+  const verdict = getTasteVerdict(submission, stats);
+  const recommendations = getRecommendations(submission, stats);
   const shareText = getShareText(submission);
   setMeta(
     `My Top 5 ${category.name} in Seattle | Local Five`,
@@ -676,13 +1159,17 @@ function renderRankPage(submissionId) {
             </ol>
           </div>
           <div class="result-copy">
-            <p class="eyebrow">Result</p>
-            <h1>You matched Seattle ${stats.overlap}/5.</h1>
-            <p>${resultSentence(stats)}</p>
+            <p class="eyebrow">Taste verdict</p>
+            <h1>${escapeHtml(verdict.title)}</h1>
+            <p>${escapeHtml(verdict.roast)}</p>
+            <div class="tag-row verdict-badges">
+              ${verdict.badges.map((badge) => `<span>${escapeHtml(badge)}</span>`).join("")}
+            </div>
+            ${toneToggle(verdict.tone, submission.id)}
             <div class="score-grid">
               <div><strong>${stats.score}%</strong><span>taste score</span></div>
-              <div><strong>${stats.exact}/5</strong><span>exact spots</span></div>
-              <div><strong>${stats.boldest?.cityRank || "New"}</strong><span>boldest city rank</span></div>
+              <div><strong>${verdict.scoreValue}%</strong><span>${escapeHtml(verdict.scoreLabel)}</span></div>
+              <div><strong>${stats.creatorMatches[0]?.overlap || 0}/5</strong><span>foodie match</span></div>
             </div>
             <div class="result-actions">
               <button class="primary-button" type="button" data-action="copy-share" data-submission-id="${submission.id}">Copy share link</button>
@@ -695,10 +1182,33 @@ function renderRankPage(submissionId) {
       </section>
       <section class="section-wrap dashboard-grid">
         <div class="info-panel">
+          <p class="eyebrow">Your Top 5</p>
+          <h2>${escapeHtml(category.name)} ranking</h2>
+          ${submissionList(submission)}
+        </div>
+        <div class="info-panel">
           <p class="eyebrow">City consensus</p>
           <h2>Seattle's Top 5 ${escapeHtml(category.name)}</h2>
           ${leaderboardPreview(category.slug, submission.id)}
         </div>
+        <div class="info-panel">
+          <p class="eyebrow">Creator match</p>
+          <h2>Foodie comparison</h2>
+          ${creatorMatchPanel(stats)}
+        </div>
+      </section>
+      <section class="section-wrap">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Try next</p>
+            <h2>Recommendations based on your picks</h2>
+          </div>
+        </div>
+        <div class="recommendation-grid">
+          ${recommendationsPanel(recommendations)}
+        </div>
+      </section>
+      <section class="section-wrap dashboard-grid">
         <div class="info-panel">
           <p class="eyebrow">Bold take</p>
           <h2>${escapeHtml(stats.boldest?.place?.name || "Your list")}</h2>
@@ -720,18 +1230,21 @@ function renderRankPage(submissionId) {
 function renderCreatorPage(creatorSlug) {
   const creator = getCreator(creatorSlug) || creators[0];
   const creatorRankings = seedRankings.filter((ranking) => ranking.creatorSlug === creator.slug);
-  setMeta(`${creator.displayName} on Local Five`, `Compare your taste with ${creator.displayName}'s sample Local Five lists.`);
+  const publicName = getPublicCreatorName(creator);
+  const attributionLine =
+    creator.publicAttributionEnabled || SHOW_UNVERIFIED_CREATOR_NAMES ? creator.handle : "Attribution hidden until verified";
+  setMeta(`${publicName} on Local Five`, `Compare your taste with a Local Five seed ranking.`);
   shell(`
     <main>
       <section class="creator-band">
         <div class="creator-profile">
-          <div class="avatar">${escapeHtml(initials(creator.displayName))}</div>
+          <div class="avatar">${escapeHtml(initials(publicName))}</div>
           <div>
-            <p class="eyebrow">Sample creator profile</p>
-            <h1>${escapeHtml(creator.displayName)}</h1>
-            <p>${escapeHtml(creator.handle)} · ${escapeHtml(creator.city)}</p>
+            <p class="eyebrow">Seed comparison profile</p>
+            <h1>${escapeHtml(publicName)}</h1>
+            <p>${escapeHtml(attributionLine)} · ${escapeHtml(creator.city)}</p>
             <p>${escapeHtml(creator.bio)}</p>
-            <span class="notice-pill">Mock profile, not an endorsement</span>
+            <span class="notice-pill">Seed data, not an endorsement</span>
           </div>
         </div>
       </section>
@@ -749,7 +1262,7 @@ function renderCreatorPage(creatorSlug) {
               return `
                 <a class="category-card" href="/seattle/${category.slug}" data-link style="--accent: ${category.accent}">
                   <span>${escapeHtml(category.name)}</span>
-                  <h3>${escapeHtml(creator.displayName)}'s Top 5</h3>
+                  <h3>${escapeHtml(publicName)} Top 5</h3>
                   <p>${ranking.placeIds
                     .slice(0, 3)
                     .map((placeId) => getPlace(placeId)?.name)
@@ -759,6 +1272,96 @@ function renderCreatorPage(creatorSlug) {
               `;
             })
             .join("")}
+        </div>
+      </section>
+    </main>
+  `);
+}
+
+function renderPlacePage(placeId) {
+  const place = getPlace(decodeURIComponent(placeId));
+  if (!place || place.verificationStatus === "exclude_closed") {
+    setMeta("Place not found | Local Five", "Explore Local Five Seattle food rankings.");
+    shell(`
+      <main class="section-wrap">
+        <div class="empty-state large">
+          <h1>Place not found.</h1>
+          <p>This place is not active in the public seed list.</p>
+          <a class="primary-button" href="/seattle/pizza" data-link>Back to rankings</a>
+        </div>
+      </main>
+    `);
+    return;
+  }
+
+  const primaryCategory = getCategory(place.category);
+  const related = getPlacesFor(place.category)
+    .filter((item) => item.id !== place.id)
+    .filter((item) => item.neighborhood === place.neighborhood || item.category === place.category)
+    .slice(0, 4);
+  const sourceInfo = getSourceInfo(place);
+  setMeta(`${place.name} | Local Five`, `${place.name} in ${place.neighborhood || "Seattle"} for Local Five ${primaryCategory.name} rankings.`);
+
+  shell(`
+    <main>
+      <section class="creator-band place-detail-band" style="--accent: ${primaryCategory.accent}">
+        <div class="place-detail-hero">
+          <div>
+            <p class="eyebrow">Local Five place</p>
+            <h1>${escapeHtml(place.name)}</h1>
+            <p>${escapeHtml(place.neighborhood || "Seattle")} · ${escapeHtml(primaryCategory.name)}</p>
+            <div class="tag-row">
+              ${verificationBadge(place)}
+              ${(place.tags || []).slice(0, 5).map((tag) => `<span>${escapeHtml(titleCaseSlug(tag))}</span>`).join("")}
+            </div>
+          </div>
+          <a class="primary-button" href="/seattle/${primaryCategory.slug}" data-link>Add to my Top 5</a>
+        </div>
+      </section>
+      <section class="section-wrap dashboard-grid">
+        <div class="info-panel">
+          <p class="eyebrow">Quick info</p>
+          <h2>Why it is in Local Five</h2>
+          <p>${escapeHtml(place.description || "Seed place for Local Five launch testing.")}</p>
+          <p>${escapeHtml(place.why || "Useful seed candidate for local Top 5 debates.")}</p>
+          <div class="place-link-row">
+            ${place.mapUrl ? `<a class="ghost-link compact-link" href="${escapeHtml(place.mapUrl)}" target="_blank" rel="noreferrer">Map</a>` : ""}
+            ${place.officialUrl ? `<a class="ghost-link compact-link" href="${escapeHtml(place.officialUrl)}" target="_blank" rel="noreferrer">Website</a>` : ""}
+            ${sourceInfo.url ? `<a class="ghost-link compact-link" href="${escapeHtml(sourceInfo.url)}" target="_blank" rel="noreferrer">${escapeHtml(sourceInfo.label)}</a>` : ""}
+          </div>
+        </div>
+        <div class="info-panel">
+          <p class="eyebrow">Appears in</p>
+          <h2>Ranking prompts</h2>
+          <div class="tag-row prompt-tags">
+            ${(place.categorySlugs || [place.category])
+              .filter((slug) => launchCategoryLabels[slug])
+              .slice(0, 8)
+              .map((slug) => `<a href="/seattle/${slug}" data-link>${escapeHtml(getCategory(slug).name)}</a>`)
+              .join("")}
+          </div>
+        </div>
+        <div class="info-panel">
+          <p class="eyebrow">Creator signals</p>
+          <h2>Imported mentions</h2>
+          ${place.creatorSignals?.length ? creatorSignalsList(place) : `<p>No imported creator signal yet.</p>`}
+        </div>
+      </section>
+      <section class="section-wrap">
+        <div class="method-card">
+          <strong>Verification note</strong>
+          <p>This is a seed listing. Hours, addresses, menus, ownership, and business status should be checked before visiting or marketing this page.</p>
+        </div>
+      </section>
+      <section class="section-wrap">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Related</p>
+            <h2>Nearby or similar places</h2>
+          </div>
+        </div>
+        <div class="recommendation-grid">
+          ${related.map((item) => placeMiniCard(item)).join("")}
         </div>
       </section>
     </main>
@@ -835,6 +1438,7 @@ function render() {
   if (route.name === "category") renderCategoryPage(route.categorySlug);
   if (route.name === "rank") renderRankPage(route.submissionId);
   if (route.name === "creator") renderCreatorPage(route.creatorSlug);
+  if (route.name === "place") renderPlacePage(route.placeId);
   if (route.name === "admin") renderAdmin();
 }
 
@@ -852,15 +1456,47 @@ function categoryCard(category) {
 }
 
 function creatorCard(creator) {
+  const label = getPublicCreatorName(creator);
   return `
     <a class="creator-mini" href="/creator/${creator.slug}" data-link>
-      <span class="avatar small">${escapeHtml(initials(creator.displayName))}</span>
+      <span class="avatar small">${escapeHtml(initials(label))}</span>
       <span>
-        <strong>${escapeHtml(creator.displayName)}</strong>
-        <small>${escapeHtml(creator.handle)} · sample profile</small>
+        <strong>${escapeHtml(label)}</strong>
+        <small>${escapeHtml(creator.publicAttributionEnabled || SHOW_UNVERIFIED_CREATOR_NAMES ? creator.handle : "Seed comparison list")}</small>
       </span>
     </a>
   `;
+}
+
+function placeSearchCard(place, categorySlug, disabled) {
+  const tags = unique([...(place.tags || []), ...(place.creatorMentionedBy || []).map((creatorId) => getCreatorBadgeLabel(creatorId))]).slice(0, 4);
+  return `
+    <article class="place-card compact">
+      <div class="place-card-main">
+        <div class="place-title-row">
+          <div>
+            <strong>${escapeHtml(place.name)}</strong>
+            <span>${escapeHtml(place.neighborhood || "Seattle")}</span>
+          </div>
+          ${verificationBadge(place)}
+        </div>
+        <p>${escapeHtml(place.description || place.note || "Seed place for Local Five launch testing.")}</p>
+        <div class="tag-row">${tags.map((tag) => `<span>${escapeHtml(titleCaseSlug(tag))}</span>`).join("")}</div>
+      </div>
+      <div class="place-card-actions">
+        <button type="button" class="place-add-button" data-action="add-place" data-category="${categorySlug}" data-place-id="${place.id}" ${
+    disabled ? "disabled" : ""
+  }>Add</button>
+        <a class="place-detail-link" href="${routeForPlace(place.id)}" data-link>Details</a>
+      </div>
+    </article>
+  `;
+}
+
+function verificationBadge(place) {
+  if (place.verificationStatus === "verified_active") return `<span class="verify-badge verified">Verified</span>`;
+  if (place.verificationStatus === "exclude_closed") return `<span class="verify-badge danger">Closed</span>`;
+  return `<span class="verify-badge">Launch seed</span>`;
 }
 
 function renderEditor(categorySlug) {
@@ -868,11 +1504,17 @@ function renderEditor(categorySlug) {
   if (!editor) return;
   const draft = getDraft(categorySlug);
   const selectedPlaces = draft.selected.map(getPlace).filter(Boolean);
-  const selectedSet = new Set(draft.selected);
+  const selectedSet = new Set(draft.selected.map(resolvePlaceId));
   const query = draft.query.trim().toLowerCase();
   const available = getPlacesFor(categorySlug)
     .filter((place) => !selectedSet.has(place.id))
-    .filter((place) => !query || `${place.name} ${place.neighborhood}`.toLowerCase().includes(query))
+    .filter(
+      (place) =>
+        !query ||
+        `${place.name} ${place.neighborhood} ${place.description || ""} ${(place.tags || []).join(" ")}`
+          .toLowerCase()
+          .includes(query)
+    )
     .slice(0, query ? 8 : 6);
   const canSubmit = selectedPlaces.length === 5;
   const progress = document.querySelector("#progressPill");
@@ -917,16 +1559,7 @@ function renderEditor(categorySlug) {
         ${
           available.length
             ? available
-                .map(
-                  (place) => `
-                    <button type="button" class="place-result" data-action="add-place" data-category="${categorySlug}" data-place-id="${place.id}" ${
-                    selectedPlaces.length >= 5 ? "disabled" : ""
-                  }>
-                      <strong>${escapeHtml(place.name)}</strong>
-                      <span>${escapeHtml(place.neighborhood)}</span>
-                    </button>
-                  `
-                )
+                .map((place) => placeSearchCard(place, categorySlug, selectedPlaces.length >= 5))
                 .join("")
             : `<button type="button" class="place-result suggest" data-action="suggest-place" data-category="${categorySlug}">
                 <strong>Suggest "${escapeHtml(draft.query || "a missing place")}"</strong>
@@ -975,6 +1608,136 @@ function leaderboardPreview(categorySlug, excludeId) {
         )
         .join("")}
     </ol>
+  `;
+}
+
+function submissionList(submission) {
+  return `
+    <ol class="leaderboard-list">
+      ${submission.placeIds
+        .map(getPlace)
+        .filter(Boolean)
+        .map(
+          (place, index) => `
+            <li>
+              <span class="rank-number">${index + 1}</span>
+              <span>
+                <strong>${escapeHtml(place.name)}</strong>
+                <small>${escapeHtml(place.neighborhood || "Seattle")}</small>
+              </span>
+              <a class="score-badge details-badge" href="${routeForPlace(place.id)}" data-link>Details</a>
+            </li>
+          `
+        )
+        .join("")}
+    </ol>
+  `;
+}
+
+function toneToggle(activeTone, submissionId) {
+  const tones = [
+    ["mild", "Mild"],
+    ["spicy", "Spicy"],
+    ["unhinged_safe", "Unhinged"]
+  ];
+  return `
+    <div class="tone-toggle" aria-label="Roast tone">
+      ${tones
+        .map(
+          ([tone, label]) => `
+            <button type="button" data-action="set-tone" data-tone="${tone}" data-submission-id="${submissionId}" class="${
+            activeTone === tone ? "is-active" : ""
+          }">${label}</button>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function creatorMatchPanel(stats) {
+  if (!stats.creatorMatches.length) {
+    return `<div class="empty-state"><strong>No creator overlap yet.</strong><span>Your list is doing its own thing.</span></div>`;
+  }
+
+  return `
+    <div class="table-list">
+      ${stats.creatorMatches
+        .map((match) => {
+          const creatorName = getPublicCreatorName(match.creator);
+          const overlapNames = match.overlapIds
+            .slice(0, 2)
+            .map((placeId) => getPlace(placeId)?.name)
+            .filter(Boolean)
+            .join(", ");
+          return `
+            <div>
+              <strong>${escapeHtml(creatorName)}: ${match.overlap}/5 match</strong>
+              <span>${escapeHtml(overlapNames || "No exact overlap")} · seed data, not an endorsement</span>
+            </div>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
+function recommendationsPanel(recommendations) {
+  if (!recommendations.length) {
+    return `<div class="empty-state"><strong>No recommendations yet.</strong><span>Add more seed places for this category.</span></div>`;
+  }
+
+  return recommendations
+    .map(
+      ({ place, reason }) => `
+        <article class="recommendation-card">
+          <div class="place-title-row">
+            <div>
+              <h3>${escapeHtml(place.name)}</h3>
+              <span>${escapeHtml(place.neighborhood || "Seattle")}</span>
+            </div>
+            ${verificationBadge(place)}
+          </div>
+          <p>${escapeHtml(reason)}</p>
+          <div class="tag-row">${(place.tags || []).slice(0, 3).map((tag) => `<span>${escapeHtml(titleCaseSlug(tag))}</span>`).join("")}</div>
+          <a class="ghost-link compact-link" href="${routeForPlace(place.id)}" data-link>Details</a>
+        </article>
+      `
+    )
+    .join("");
+}
+
+function creatorSignalsList(place) {
+  return `
+    <div class="table-list">
+      ${place.creatorSignals
+        .slice(0, 5)
+        .map(
+          (signal) => `
+            <div>
+              <strong>${escapeHtml(getCreatorBadgeLabel(signal.creatorId))}${signal.rankPosition ? ` · #${signal.rankPosition}` : ""}</strong>
+              <span>${escapeHtml(signal.summary || signal.rankStatus || "Imported seed mention")}</span>
+            </div>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+}
+
+function placeMiniCard(place) {
+  return `
+    <article class="recommendation-card">
+      <div class="place-title-row">
+        <div>
+          <h3>${escapeHtml(place.name)}</h3>
+          <span>${escapeHtml(place.neighborhood || "Seattle")}</span>
+        </div>
+        ${verificationBadge(place)}
+      </div>
+      <p>${escapeHtml(place.description || "Seed place for Local Five launch testing.")}</p>
+      <a class="ghost-link compact-link" href="${routeForPlace(place.id)}" data-link>Details</a>
+    </article>
   `;
 }
 
@@ -1037,13 +1800,13 @@ function boldestSentence(boldest) {
 
 function tasteTwinTitle(twin) {
   const creator = getCreator(twin?.creatorSlug);
-  return creator ? creator.displayName : "Sample city list";
+  return creator ? getPublicCreatorName(creator) : "Sample city list";
 }
 
 function tasteTwinSentence(twin) {
   const creator = getCreator(twin?.creatorSlug);
-  const label = creator ? `${creator.displayName}'s sample list` : "a sample city list";
-  return `You matched ${twin?.overlap || 0}/5 with ${label}. Creator pages are mock until creators opt in.`;
+  const label = creator ? getPublicCreatorName(creator) : "a sample city list";
+  return `You matched ${twin?.overlap || 0}/5 with ${label}. This is seed comparison data, not an endorsement.`;
 }
 
 function getShareText(submission) {
@@ -1111,7 +1874,7 @@ function submitRanking(categorySlug) {
     source: "user",
     visibility: "public",
     createdAt: new Date().toISOString(),
-    placeIds: [...draft.selected]
+    placeIds: draft.selected.map(resolvePlaceId)
   };
   const store = loadStore();
   saveStore({ ...store, submissions: [submission, ...store.submissions] });
@@ -1172,6 +1935,12 @@ document.addEventListener("click", async (event) => {
   if (action === "move-down") movePlace(categorySlug, placeId, "down");
   if (action === "submit-ranking") submitRanking(categorySlug);
   if (action === "suggest-place") suggestPlace(categorySlug);
+
+  if (action === "set-tone") {
+    const store = loadStore();
+    saveStore({ ...store, tone: actionButton.dataset.tone || "spicy" });
+    render();
+  }
 
   if (action === "copy-share") {
     const submission = getAllSubmissions().find((item) => item.id === actionButton.dataset.submissionId);

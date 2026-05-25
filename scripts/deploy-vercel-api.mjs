@@ -17,7 +17,12 @@ const files = [
   "config.js",
   "vercel.json",
   "robots.txt",
-  "social-card.svg"
+  "social-card.svg",
+  "data/seed/rankbites_seattle_seed_places.csv",
+  "data/seed/rankbites_seed_sources.csv",
+  "data/seed/rankbites_creator_rankings_matt_nick_normalized.csv",
+  "data/seed/rankbites_creator_rankings_matt_nick_seed.json",
+  "data/seed/rankbites_seed_data.js"
 ];
 
 const payloadFiles = await Promise.all(

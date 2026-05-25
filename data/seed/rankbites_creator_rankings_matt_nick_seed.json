@@ -1,0 +1,737 @@
+{
+  "generated_at": "2026-05-25T06:05:47.768322Z",
+  "source_file": "Seattle_Best_Food_Matt_vs_Nick (1).csv",
+  "important_note": "User-uploaded seed data. Verify creator handles, source URLs, and place details before publishing. Do not imply creator endorsement unless opt_in_status changes to opted_in.",
+  "creators": [
+    {
+      "creator_id": "matthew-norman",
+      "display_name": "Matthew Norman",
+      "role": "cook / chef-creator",
+      "handle_to_verify": "",
+      "opt_in_status": "not_verified_user_uploaded_data",
+      "disclaimer": "Curated/imported seed list; not an official endorsement until verified."
+    },
+    {
+      "creator_id": "nick-rizzo",
+      "display_name": "Nick Rizzo",
+      "role": "food reviewer / local ranking creator",
+      "handle_to_verify": "",
+      "opt_in_status": "not_verified_user_uploaded_data",
+      "disclaimer": "Curated/imported seed list; not an official endorsement until verified."
+    }
+  ],
+  "rankings": [
+    {
+      "creator_id": "matthew-norman",
+      "category_slug": "burgers",
+      "category_label": "Burgers",
+      "items": [
+        {
+          "rank_position": 1,
+          "rank_status": "#1 Spot Now",
+          "place_id": "seattle-familyfriend",
+          "place_name": "Familyfriend",
+          "creator_note": "Number one spot for the burger in Seattle right now. Freaking delicious.",
+          "place_summary": "Beacon Hill. Known for double smash burgers with house-made sauce and Kewpie mayo.",
+          "neighborhood_hint": "Beacon Hill",
+          "tags": [
+            "burger",
+            "burgers",
+            "kewpie",
+            "neighborhood-beacon-hill",
+            "smash-burger"
+          ]
+        },
+        {
+          "rank_position": null,
+          "rank_status": "Top Favorite",
+          "place_id": "seattle-coastline-burgers",
+          "place_name": "Coastline Burgers",
+          "creator_note": "Classic flat top burger. One of his favorite types.",
+          "place_summary": "Seattle. Known for simple, well-executed flat top burgers with fresh ingredients.",
+          "neighborhood_hint": "Seattle",
+          "tags": [
+            "burger",
+            "burgers",
+            "classic"
+          ]
+        }
+      ]
+    },
+    {
+      "creator_id": "matthew-norman",
+      "category_slug": "donuts",
+      "category_label": "Donuts",
+      "items": [
+        {
+          "rank_position": 1,
+          "rank_status": "#1 Favorite",
+          "place_id": "seattle-temple-pastry",
+          "place_name": "Temple Pastry",
+          "creator_note": "Chocolate Cronut is the best donut he's had. Flaky, buttery, fresh.",
+          "place_summary": "Central District. Fermentation and butter focused pastry shop with a chef-driven approach.",
+          "neighborhood_hint": "Central District",
+          "tags": [
+            "buttery",
+            "cronut",
+            "donuts",
+            "flaky",
+            "long-fermentation",
+            "neighborhood-central-district",
+            "pastry"
+          ]
+        },
+        {
+          "rank_position": null,
+          "rank_status": "Market Staple",
+          "place_id": "seattle-daily-dozen-donuts",
+          "place_name": "Daily Dozen Donuts",
+          "creator_note": "Fluffy, airy, light. Get the plain ones fresh off the fryer.",
+          "place_summary": "Pike Place Market (since 1978). Specializes in mini donuts made fresh to order.",
+          "neighborhood_hint": "Pike Place Market",
+          "tags": [
+            "donuts",
+            "neighborhood-pike-place-market"
+          ]
+        }
+      ]
+    },
+    {
+      "creator_id": "matthew-norman",
+      "category_slug": "fried-chicken",
+      "category_label": "Fried Chicken",
+      "items": [
+        {
+          "rank_position": null,
+          "rank_status": "Top Favorite",
+          "place_id": "seattle-cookie-s-country-chicken",
+          "place_name": "Cookie's Country Chicken",
+          "creator_note": "Massive, juicy, perfectly crunchy. Cayenne + hot honey.",
+          "place_summary": "Pioneer Square. Focused on high-quality fried chicken sandwiches and tenders.",
+          "neighborhood_hint": "Pioneer Square",
+          "tags": [
+            "chicken",
+            "crunchy",
+            "fried-chicken",
+            "hot-honey",
+            "juicy",
+            "large-portions",
+            "neighborhood-pioneer-square"
+          ]
+        },
+        {
+          "rank_position": null,
+          "rank_status": "The Mecca",
+          "place_id": "seattle-ezell-s-famous-chicken",
+          "place_name": "Ezell's Famous Chicken",
+          "creator_note": "10-year regular. Referred to as the Mecca of Seattle chicken. Spicy tenders + rolls are money.",
+          "place_summary": "Central District (Garfield High School location). Original spot of the famous chain.",
+          "neighborhood_hint": "Central District",
+          "tags": [
+            "chicken",
+            "fried-chicken",
+            "neighborhood-central-district"
+          ]
+        }
+      ]
+    },
+    {
+      "creator_id": "matthew-norman",
+      "category_slug": "pizza",
+      "category_label": "Pizza",
+      "items": [
+        {
+          "rank_position": null,
+          "rank_status": "Personal Favorite",
+          "place_id": "seattle-ak-pizza",
+          "place_name": "AK Pizza",
+          "creator_note": "Exceptional crust and fermentation. Potato slice is unreal. Consistently excellent.",
+          "place_summary": "New York-inspired with chef execution. Located near Othello station. Focuses on high-quality ingredients and long fermentation.",
+          "neighborhood_hint": "Othello",
+          "tags": [
+            "consistent",
+            "crust",
+            "long-fermentation",
+            "neighborhood-othello",
+            "ny-style",
+            "pizza",
+            "slice"
+          ]
+        },
+        {
+          "rank_position": 1,
+          "rank_status": "#1 Slice",
+          "place_id": "seattle-post-alley-pizza",
+          "place_name": "Post Alley Pizza",
+          "creator_note": "Nicest slice in Seattle. Perfect balance of crunch and airiness. Better than East Coast.",
+          "place_summary": "PNW Pizzeria serving 18 inch pies and slices. 1123 Post Ave. Family owned and operated.",
+          "neighborhood_hint": "Seattle",
+          "tags": [
+            "crunchy",
+            "pizza",
+            "slice"
+          ]
+        },
+        {
+          "rank_position": null,
+          "rank_status": "Top Favorite",
+          "place_id": "seattle-slice-box-pizza",
+          "place_name": "Slice Box Pizza",
+          "creator_note": "Most New York vibe. Best single slice in the city. Crisp bottom, light structure.",
+          "place_summary": "Located in SoDo. New York-inspired slice shop. Known for its no-frills, authentic atmosphere. Limited hours.",
+          "neighborhood_hint": "SoDo",
+          "tags": [
+            "crispy",
+            "neighborhood-sodo",
+            "ny-style",
+            "pizza",
+            "slice"
+          ]
+        },
+        {
+          "rank_position": null,
+          "rank_status": "Iconic Classic",
+          "place_id": "seattle-hot-mama-s-pizza",
+          "place_name": "Hot Mama's Pizza",
+          "creator_note": "Formerly #1. Pesto pizza is a must. Airy and crisp crust. Like the Dick's of pizza.",
+          "place_summary": "Capitol Hill institution. Known for their pesto and specialty slices. Pesto slice ~$10, Pepperoni ~$8.50.",
+          "neighborhood_hint": "Capitol Hill",
+          "tags": [
+            "crispy",
+            "crust",
+            "hype-worthy",
+            "local-institution",
+            "neighborhood-capitol-hill",
+            "pizza",
+            "slice"
+          ]
+        },
+        {
+          "rank_position": null,
+          "rank_status": "Top Must-Visit",
+          "place_id": "seattle-windy-city-pie",
+          "place_name": "Windy City Pie",
+          "creator_note": "Cracker-thin tavern style. Perfect char and addictive zingy sauce.",
+          "place_summary": "Chicago tavern-style pizza. Located in Phinney Ridge. Known for its unique sauce and thin, crispy crust.",
+          "neighborhood_hint": "Phinney Ridge",
+          "tags": [
+            "chicago-style",
+            "crispy",
+            "crust",
+            "distinctive",
+            "neighborhood-phinney-ridge",
+            "pizza",
+            "tavern-style"
+          ]
+        }
+      ]
+    },
+    {
+      "creator_id": "matthew-norman",
+      "category_slug": "ramen-noodles",
+      "category_label": "Ramen + Noodles",
+      "items": [
+        {
+          "rank_position": null,
+          "rank_status": "All-time Favorite",
+          "place_id": "seattle-ooink",
+          "place_name": "Ooink",
+          "creator_note": "Mapo Tofu Ramen; rich, velvety broth. Might be my favorite ramen of all time.",
+          "place_summary": "Capitol Hill. Specializes in unique fusion ramen like Mapo Tofu Ramen (~$20.50).",
+          "neighborhood_hint": "Capitol Hill",
+          "tags": [
+            "distinctive",
+            "mapo",
+            "neighborhood-capitol-hill",
+            "noodles",
+            "ramen",
+            "ramen-noodles"
+          ]
+        },
+        {
+          "rank_position": null,
+          "rank_status": "Top Pick",
+          "place_id": "seattle-phnom-penh-noodle-house",
+          "place_name": "Phnom Penh Noodle House",
+          "creator_note": "Wonton noodle soup is freaking delicious. Uniquely clear broth.",
+          "place_summary": "913 S Jackson St. Iconic Cambodian restaurant. Famous for its Sate Beef Noodle Soup (~$20.95).",
+          "neighborhood_hint": "",
+          "tags": [
+            "cambodian",
+            "distinctive",
+            "hype-worthy",
+            "iconic",
+            "noodles",
+            "ramen-noodles"
+          ]
+        }
+      ]
+    },
+    {
+      "creator_id": "matthew-norman",
+      "category_slug": "tacos",
+      "category_label": "Tacos",
+      "items": [
+        {
+          "rank_position": null,
+          "rank_status": "Sets the Bar",
+          "place_id": "seattle-carnitas-michoacan",
+          "place_name": "Carnitas Michoacan",
+          "creator_note": "Sets the bar for the best tacos in Seattle. Rich flavors, consistent, traditional.",
+          "place_summary": "2500 Beacon Ave S. Authentic Mexican recipes from Michoacan. Tacos ~$3.69+, Tortas ~$11.99.",
+          "neighborhood_hint": "Seattle",
+          "tags": [
+            "consistent",
+            "distinctive",
+            "michoacan",
+            "tacos"
+          ]
+        },
+        {
+          "rank_position": null,
+          "rank_status": "Popular Favorite",
+          "place_id": "seattle-carmelo-s-tacos",
+          "place_name": "Carmelo's Tacos",
+          "creator_note": "Vibrant flavors, late-night energy. Al pastor is a fan favorite.",
+          "place_summary": "Capitol Hill (inside convenience store). Known for authentic street-style tacos and budget-friendly prices.",
+          "neighborhood_hint": "Capitol Hill",
+          "tags": [
+            "al-pastor",
+            "budget-friendly",
+            "hidden-gem",
+            "late-night",
+            "neighborhood-capitol-hill",
+            "tacos"
+          ]
+        }
+      ]
+    },
+    {
+      "creator_id": "nick-rizzo",
+      "category_slug": "bagels",
+      "category_label": "Bagels",
+      "items": [
+        {
+          "rank_position": 1,
+          "rank_status": "1",
+          "place_id": "seattle-mt-bagel",
+          "place_name": "Mt. Bagel",
+          "creator_note": "The gold standard for bagels in Seattle.",
+          "place_summary": "Ballard. Known for their long lines and high-quality, hand-rolled bagels.",
+          "neighborhood_hint": "Ballard",
+          "tags": [
+            "bagels",
+            "hype-worthy",
+            "neighborhood-ballard"
+          ]
+        },
+        {
+          "rank_position": 2,
+          "rank_status": "2",
+          "place_id": "seattle-hey-bagel",
+          "place_name": "Hey Bagel",
+          "creator_note": "Crunchy outside, doughy inside.",
+          "place_summary": "Seattle. Focuses on traditional bagel textures.",
+          "neighborhood_hint": "Seattle",
+          "tags": [
+            "bagels",
+            "crunchy"
+          ]
+        }
+      ]
+    },
+    {
+      "creator_id": "nick-rizzo",
+      "category_slug": "bbq",
+      "category_label": "BBQ",
+      "items": [
+        {
+          "rank_position": 1,
+          "rank_status": "1",
+          "place_id": "seattle-outsider-bbq",
+          "place_name": "Outsider BBQ",
+          "creator_note": "Ballard; top-tier mac and cheese and pulled pork.",
+          "place_summary": "Ballard. Texas-style BBQ. Sliced Brisket ~$40/lb, Pulled Pork ~$32/lb.",
+          "neighborhood_hint": "Ballard",
+          "tags": [
+            "bbq",
+            "brisket",
+            "neighborhood-ballard",
+            "pulled-pork",
+            "slice",
+            "texas-style"
+          ]
+        },
+        {
+          "rank_position": 2,
+          "rank_status": "2",
+          "place_id": "seattle-wood-shop-bbq",
+          "place_name": "Wood Shop BBQ",
+          "creator_note": "Central District favorite.",
+          "place_summary": "Central District. Started as a food truck, known for hickory-smoked meats.",
+          "neighborhood_hint": "Central District",
+          "tags": [
+            "bbq",
+            "neighborhood-central-district"
+          ]
+        },
+        {
+          "rank_position": 3,
+          "rank_status": "3",
+          "place_id": "seattle-jack-s-bbq",
+          "place_name": "Jack's BBQ",
+          "creator_note": "Solid Texas-style BBQ.",
+          "place_summary": "Multiple locations (SoDo, SLU, Algona). Central Texas style BBQ.",
+          "neighborhood_hint": "SoDo",
+          "tags": [
+            "bbq",
+            "neighborhood-sodo",
+            "texas-style"
+          ]
+        }
+      ]
+    },
+    {
+      "creator_id": "nick-rizzo",
+      "category_slug": "burgers",
+      "category_label": "Burgers",
+      "items": [
+        {
+          "rank_position": 1,
+          "rank_status": "1",
+          "place_id": "seattle-ox-burger",
+          "place_name": "Ox Burger",
+          "creator_note": "Lao-style burger with pickled onions and provolone. Unique and flavorful.",
+          "place_summary": "Capitol Hill. Lao-inspired smash burgers. Lao Burger ~$18.",
+          "neighborhood_hint": "Capitol Hill",
+          "tags": [
+            "burger",
+            "burgers",
+            "distinctive",
+            "neighborhood-capitol-hill",
+            "smash-burger"
+          ]
+        },
+        {
+          "rank_position": 2,
+          "rank_status": "2",
+          "place_id": "seattle-familyfriend",
+          "place_name": "Familyfriend",
+          "creator_note": "Double smash burger, house-made sauce, Kewpie mayo. High consistency.",
+          "place_summary": "Beacon Hill. Also a favorite of Matt's. Focus on quality and simplicity.",
+          "neighborhood_hint": "Beacon Hill",
+          "tags": [
+            "burger",
+            "burgers",
+            "kewpie",
+            "neighborhood-beacon-hill",
+            "smash-burger"
+          ]
+        },
+        {
+          "rank_position": 3,
+          "rank_status": "3",
+          "place_id": "seattle-joez",
+          "place_name": "Joez",
+          "creator_note": "Oklahoma smash burger with in-house made buns.",
+          "place_summary": "Portage Bay. Known for their thin, lacy-edged Oklahoma-style smash burgers.",
+          "neighborhood_hint": "Portage Bay",
+          "tags": [
+            "burger",
+            "burgers",
+            "neighborhood-portage-bay",
+            "oklahoma-smash",
+            "smash-burger"
+          ]
+        },
+        {
+          "rank_position": 4,
+          "rank_status": "4",
+          "place_id": "seattle-double-o-burgers",
+          "place_name": "Double O Burgers",
+          "creator_note": "Crunchy fries and caramelized onions.",
+          "place_summary": "Seattle. Known for classic smash burgers and excellent sides.",
+          "neighborhood_hint": "Seattle",
+          "tags": [
+            "burger",
+            "burgers",
+            "classic",
+            "crunchy",
+            "smash-burger"
+          ]
+        },
+        {
+          "rank_position": 5,
+          "rank_status": "5",
+          "place_id": "seattle-dick-s-drive-in",
+          "place_name": "Dick's Drive-In",
+          "creator_note": "Classic Seattle staple; Seattle's In-N-Out.",
+          "place_summary": "Multiple locations. Iconic Seattle fast food institution since 1954.",
+          "neighborhood_hint": "Seattle",
+          "tags": [
+            "burger",
+            "burgers",
+            "classic",
+            "hype-worthy",
+            "iconic",
+            "local-institution"
+          ]
+        }
+      ]
+    },
+    {
+      "creator_id": "nick-rizzo",
+      "category_slug": "chicken-sandwiches",
+      "category_label": "Chicken Sandwiches",
+      "items": [
+        {
+          "rank_position": 1,
+          "rank_status": "1",
+          "place_id": "seattle-triangle-spirits",
+          "place_name": "Triangle Spirits",
+          "creator_note": "Fremont; best in Seattle; perfect crunch and flavor.",
+          "place_summary": "Fremont. Known for their hot chicken sandwich (~$19).",
+          "neighborhood_hint": "Fremont",
+          "tags": [
+            "chicken",
+            "chicken-sandwiches",
+            "crunchy",
+            "neighborhood-fremont"
+          ]
+        },
+        {
+          "rank_position": 2,
+          "rank_status": "2",
+          "place_id": "seattle-milk-drunk",
+          "place_name": "Milk Drunk",
+          "creator_note": "Beacon Hill favorite.",
+          "place_summary": "Beacon Hill. Specializes in fried chicken sandwiches and soft serve (~$13).",
+          "neighborhood_hint": "Beacon Hill",
+          "tags": [
+            "chicken",
+            "chicken-sandwiches",
+            "fried-chicken",
+            "neighborhood-beacon-hill",
+            "soft-serve"
+          ]
+        }
+      ]
+    },
+    {
+      "creator_id": "nick-rizzo",
+      "category_slug": "cookies",
+      "category_label": "Cookies",
+      "items": [
+        {
+          "rank_position": 1,
+          "rank_status": "1",
+          "place_id": "seattle-volunteer-park-cafe",
+          "place_name": "Volunteer Park Cafe",
+          "creator_note": "Perfect texture: crisp edges, right in the center.",
+          "place_summary": "1501 17th Ave E. Historic cafe in North Capitol Hill. Cookies are highly rated for texture.",
+          "neighborhood_hint": "Capitol Hill",
+          "tags": [
+            "cookies",
+            "crispy",
+            "neighborhood-capitol-hill"
+          ]
+        },
+        {
+          "rank_position": 2,
+          "rank_status": "2",
+          "place_id": "seattle-pastry-project",
+          "place_name": "Pastry Project",
+          "creator_note": "Pioneer Square bakery window; top-tier chocolate chip cookie.",
+          "place_summary": "Pioneer Square. Community-focused bakery providing job training in the pastry arts.",
+          "neighborhood_hint": "Pioneer Square",
+          "tags": [
+            "bakery",
+            "chocolate-chip",
+            "cookies",
+            "neighborhood-pioneer-square",
+            "pastry"
+          ]
+        },
+        {
+          "rank_position": 3,
+          "rank_status": "3",
+          "place_id": "seattle-ak-pizza",
+          "place_name": "AK Pizza",
+          "creator_note": "Massive piece of chonk; cakey, soft texture, crispy edges; rich and flavorful.",
+          "place_summary": "Othello station area. Known for their pizza, but their massive cookies are a standout.",
+          "neighborhood_hint": "Othello",
+          "tags": [
+            "cookies",
+            "crispy",
+            "large-portions",
+            "neighborhood-othello",
+            "pizza"
+          ]
+        },
+        {
+          "rank_position": 4,
+          "rank_status": "4",
+          "place_id": "seattle-carmelo-s-tacos",
+          "place_name": "Carmelo's Tacos",
+          "creator_note": "Brown butter chocolate chip with almonds; dip in horchata for a mind-blowing experience.",
+          "place_summary": "Capitol Hill. Famous for tacos, but the brown butter almond cookie is a hidden gem.",
+          "neighborhood_hint": "Capitol Hill",
+          "tags": [
+            "almond",
+            "brown-butter",
+            "chocolate-chip",
+            "cookies",
+            "hidden-gem",
+            "neighborhood-capitol-hill",
+            "tacos"
+          ]
+        },
+        {
+          "rank_position": 5,
+          "rank_status": "5",
+          "place_id": "seattle-metropolitan-market",
+          "place_name": "Metropolitan Market",
+          "creator_note": "The Cookie (chocolate chips + walnuts); gooey; slightly overrated but delicious.",
+          "place_summary": "Multiple locations. Famous for their massive, warm, chocolate-heavy cookie.",
+          "neighborhood_hint": "",
+          "tags": [
+            "chocolate-chip",
+            "cookies",
+            "large-portions"
+          ]
+        }
+      ]
+    },
+    {
+      "creator_id": "nick-rizzo",
+      "category_slug": "donuts",
+      "category_label": "Donuts",
+      "items": [
+        {
+          "rank_position": 1,
+          "rank_status": "1",
+          "place_id": "seattle-flour-box",
+          "place_name": "Flour Box",
+          "creator_note": "Hillman City; brioche-style (strawberry, hazelnut).",
+          "place_summary": "Hillman City. Famous for their brioche donuts and long lines.",
+          "neighborhood_hint": "Hillman City",
+          "tags": [
+            "brioche",
+            "donuts",
+            "hype-worthy",
+            "neighborhood-hillman-city"
+          ]
+        },
+        {
+          "rank_position": 2,
+          "rank_status": "2",
+          "place_id": "seattle-fuji-bakery",
+          "place_name": "Fuji Bakery",
+          "creator_note": "Interbay; crunchy cream Malasada (brioche-style donut).",
+          "place_summary": "Interbay/Chinatown. Japanese-French inspired bakery.",
+          "neighborhood_hint": "Interbay",
+          "tags": [
+            "bakery",
+            "brioche",
+            "crunchy",
+            "distinctive",
+            "donuts",
+            "malasada",
+            "neighborhood-interbay"
+          ]
+        }
+      ]
+    },
+    {
+      "creator_id": "nick-rizzo",
+      "category_slug": "fried-chicken",
+      "category_label": "Fried Chicken",
+      "items": [
+        {
+          "rank_position": 1,
+          "rank_status": "1",
+          "place_id": "seattle-cookie-s-country-chicken",
+          "place_name": "Cookie's Country Chicken",
+          "creator_note": "Pioneer Square; large servings, southern-style, crunchy and juicy.",
+          "place_summary": "Pioneer Square. Also a Matt favorite. Known for massive portions.",
+          "neighborhood_hint": "Pioneer Square",
+          "tags": [
+            "chicken",
+            "crunchy",
+            "fried-chicken",
+            "juicy",
+            "large-portions",
+            "neighborhood-pioneer-square"
+          ]
+        },
+        {
+          "rank_position": 2,
+          "rank_status": "2",
+          "place_id": "seattle-mangosteen",
+          "place_name": "Mangosteen",
+          "creator_note": "Othello; fish sauce wings, rich umami, maintains crunch.",
+          "place_summary": "Othello. Southeast Asian street food focus.",
+          "neighborhood_hint": "Othello",
+          "tags": [
+            "chicken",
+            "crunchy",
+            "fried-chicken",
+            "neighborhood-othello",
+            "umami",
+            "wings"
+          ]
+        }
+      ]
+    },
+    {
+      "creator_id": "nick-rizzo",
+      "category_slug": "pizza",
+      "category_label": "Pizza",
+      "items": [
+        {
+          "rank_position": 1,
+          "rank_status": "1",
+          "place_id": "seattle-ak-pizza",
+          "place_name": "AK Pizza",
+          "creator_note": "Top-tier; consistent favorite.",
+          "place_summary": "Othello. Also a top favorite of Matt's. Exceptional dough work.",
+          "neighborhood_hint": "Othello",
+          "tags": [
+            "consistent",
+            "neighborhood-othello",
+            "pizza"
+          ]
+        },
+        {
+          "rank_position": 2,
+          "rank_status": "2",
+          "place_id": "seattle-stevie-s-famous",
+          "place_name": "Stevie's Famous",
+          "creator_note": "Highly recommended for their quality and crust.",
+          "place_summary": "Burien/South Seattle. Known for New York-style pies.",
+          "neighborhood_hint": "Burien",
+          "tags": [
+            "crust",
+            "neighborhood-burien",
+            "ny-style",
+            "pizza"
+          ]
+        },
+        {
+          "rank_position": 3,
+          "rank_status": "3",
+          "place_id": "seattle-post-alley-pizza",
+          "place_name": "Post Alley Pizza",
+          "creator_note": "Consistently high quality.",
+          "place_summary": "Downtown. Also ranked highly by Matt.",
+          "neighborhood_hint": "Downtown",
+          "tags": [
+            "consistent",
+            "neighborhood-downtown",
+            "pizza"
+          ]
+        }
+      ]
+    }
+  ]
+}

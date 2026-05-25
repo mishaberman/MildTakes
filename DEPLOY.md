@@ -8,6 +8,15 @@ Production URL:
 
 The app is a static single-page application. Vercel rewrites clean paths like `/seattle/pizza` and `/rank/:submissionId` to `index.html`.
 
+Current product surface:
+
+- Local Five brand
+- Seattle food ranking prompts
+- Imported seed place cards and detail pages
+- Taste verdict/roast result pages
+- Attribute-based recommendations
+- Creator comparison seed data with public attribution hidden until verified
+
 ## Public Config
 
 `config.js` exposes only browser-safe values:
@@ -40,7 +49,9 @@ Run `supabase/schema.sql` when ready to persist:
 - cities
 - categories
 - places
+- place sources and place attributes
 - creators
+- creator rankings and creator ranking items
 - rank submissions
 - rank items
 - place suggestions
@@ -49,6 +60,7 @@ Run `supabase/schema.sql` when ready to persist:
 Then wire the app to:
 
 - read active categories and places
+- read source/attribute metadata for richer place cards
 - insert anonymous submissions
 - insert place suggestions
 - fetch aggregate rankings
@@ -56,10 +68,10 @@ Then wire the app to:
 
 ## Launch Checklist
 
-- Polish Seattle Pizza first.
-- Seed 50 pizza places and 10 admin lists.
+- Verify the imported Seattle Pizza seed rows first.
+- Add or verify 50 pizza places and 10 admin lists.
 - Ask 10 people to complete the ranking on mobile.
 - Watch the completion rate from first place added to submitted Top 5.
-- Replace mock creator profiles only after opt-in.
+- Publish creator names only after opt-in.
 - Confirm GA and Meta Pixel events fire.
 - Grant the Vercel GitHub app access to `mishaberman/MildTakes` so pushes auto-deploy.
