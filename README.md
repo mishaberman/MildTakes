@@ -2,7 +2,7 @@
 
 Local Five is a mobile-first local Top 5 food ranking game.
 
-The current wedge is Seattle food. A visitor lands on a category prompt, makes a Top 5 list, gets a playful taste verdict, sees how their ranking compares with the city and seed foodie lists, and gets places to try next.
+The current wedge is Seattle food. A visitor lands on a category prompt, makes a Top 5 list, gets a playful taste verdict, sees how their ranking compares with the city and reference creator lists, and gets places to try next.
 
 ## Core Loop
 
@@ -20,14 +20,14 @@ The current wedge is Seattle food. A visitor lands on a category prompt, makes a
 - Category routes like `/seattle/pizza`
 - Place detail routes like `/places/seattle-sunny-hill`
 - Local share pages like `/rank/:submissionId`
-- Seed comparison profiles like `/creator/sample-maya`
+- Verification-pending reference profiles like `/creator/matthew-norman` and `/creator/nick-rizzo`
 - Hidden owner data view at `/admin` after opening `?owner=1`
 - Imported Seattle place seed data under `data/seed/`
 - Seattle launch prompts for pizza, teriyaki, tacos, BBQ, burgers, coffee, bakery, brunch, pho, ramen/noodles, date night, sandwiches, donuts, fried chicken, chicken sandwiches, cookies, and bagels
 - Borda count consensus algorithm
 - Playful safe roast/taste verdicts with tone controls
 - Attribute-based recommendation cards
-- Creator comparison data with unverified creator attribution hidden by default
+- Reference creator comparison data with unverified creator attribution hidden by default
 - Google-only Supabase auth with an account page for drafts and submitted rankings
 - LocalStorage submissions and suggested-place queue
 - Google Analytics and Meta Pixel hooks through `config.js`

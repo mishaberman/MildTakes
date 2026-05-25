@@ -18,7 +18,8 @@ const IMPORTED_SEED = window.LOCAL_FIVE_IMPORTED_SEED || {
   places: [],
   sources: [],
   creatorRankings: { creators: [], rankings: [] },
-  normalizedCreatorRows: []
+  normalizedCreatorRows: [],
+  creatorReferenceRows: []
 };
 const importedSourceById = new Map((IMPORTED_SEED.sources || []).map((source) => [source.sourceId, source]));
 const SHOW_UNVERIFIED_CREATOR_NAMES = false;
@@ -49,6 +50,19 @@ const launchCategoryLabels = {
   bagels: "Bagels"
 };
 const placeIdAliases = {};
+const creatorReferenceAliases = {
+  "a-k-pizza": "seattle-ak-pizza",
+  "post-alley-pizza": "seattle-post-alley-pizza",
+  "slice-box-pizza": "seattle-slice-box-pizza",
+  "hot-mama-s-pizza": "seattle-hot-mama-s-pizza",
+  "windy-city-pie": "seattle-windy-city-pie",
+  "carmelo-s-tacos": "seattle-carmelo-s-tacos",
+  "cookie-s-country-chicken": "seattle-cookie-s-country-chicken",
+  "ezell-s-famous-chicken": "seattle-ezell-s-famous-chicken",
+  "wood-shop": "seattle-wood-shop-bbq",
+  "jack-s-barbecue": "seattle-jack-s-bbq",
+  "stevie-s-pizza": "seattle-stevie-s-famous"
+};
 
 const cities = [
   {
@@ -379,6 +393,19 @@ function unique(items) {
   return [...new Set(items.filter(Boolean))];
 }
 
+function countBy(items) {
+  return items.reduce((counts, item) => {
+    if (!item) return counts;
+    counts[item] = (counts[item] || 0) + 1;
+    return counts;
+  }, {});
+}
+
+function parseRankPosition(value) {
+  const match = String(value || "").match(/#?\s*([1-5])\b/);
+  return match ? Number(match[1]) : null;
+}
+
 function addCategoryIfMissing(slug, label = titleCaseSlug(slug)) {
   const normalized = normalizeCategorySlug(slug);
   if (!launchCategoryLabels[normalized]) return;
@@ -393,18 +420,61 @@ function addCategoryIfMissing(slug, label = titleCaseSlug(slug)) {
 }
 
 function getPublicCreatorName(creator) {
-  if (!creator) return "Curated local foodie list";
+  if (!creator) return "Curated local reference list";
   if (creator.publicAttributionEnabled || SHOW_UNVERIFIED_CREATOR_NAMES) return creator.displayName;
-  return creator.displayFallback || "Curated local foodie list";
+  return creator.displayFallback || "Curated local reference list";
 }
 
 function getCreatorBadgeLabel(slug) {
   const creator = getCreator(slug);
-  if (!creator) return "Foodie pick";
+  if (!creator) return "Reference pick";
   if (creator.publicAttributionEnabled || SHOW_UNVERIFIED_CREATOR_NAMES) {
     return `${creator.displayName.split(" ")[0]} pick`;
   }
-  return "Foodie pick";
+  return "Reference pick";
+}
+
+function getReferenceDisplayFallback(creatorId, displayName = "") {
+  if (creatorId === "matthew-norman") return "Matthew Norman reference list";
+  if (creatorId === "nick-rizzo") return "Nick Rizzo reference list";
+  return displayName ? `${displayName} reference list` : "Curated local reference list";
+}
+
+function resolveReferencePlaceId(row) {
+  const rawSlug = row.placeSlug || row.placeId || "";
+  const normalizedSlug = normalizeCategorySlug(rawSlug);
+  const appId = creatorReferenceAliases[normalizedSlug] || (normalizedSlug.startsWith("seattle-") ? normalizedSlug : `seattle-${normalizedSlug}`);
+  return resolvePlaceId(appId);
+}
+
+function inferReferenceTags(row) {
+  const text = `${row.categorySlug || ""} ${row.sourceFeedbackSummary || ""} ${row.seedDetails || ""}`.toLowerCase();
+  const tagRules = [
+    ["ny-style", /new york|ny-inspired|ny-style|ny style/],
+    ["slice", /slice/],
+    ["crisp-crust", /crisp|crunch|cracker-thin|thin-crust/],
+    ["airy-crust", /airy|light structure/],
+    ["long-fermentation", /fermentation|fermented|long-fermented/],
+    ["chef-driven", /chef/],
+    ["tavern-style", /tavern/],
+    ["smash-burger", /smash/],
+    ["classic", /classic|staple|institution/],
+    ["texas-style", /texas/],
+    ["brisket", /brisket/],
+    ["pulled-pork", /pulled pork/],
+    ["fried-chicken", /fried chicken|tenders|wings/],
+    ["hot-chicken", /hot chicken|spicy/],
+    ["crunchy", /crunch|crispy/],
+    ["juicy", /juicy/],
+    ["brioche", /brioche/],
+    ["cookie", /cookie/],
+    ["donut", /donut|cronut|malasada/],
+    ["bagel", /bagel/],
+    ["hidden-gem", /hidden gem/],
+    ["late-night", /late-night|late night/],
+    ["creator-reference", /./]
+  ];
+  return unique([normalizeCategorySlug(row.categorySlug), ...tagRules.filter(([, pattern]) => pattern.test(text)).map(([tag]) => tag)]);
 }
 
 function getSourceInfo(place) {
@@ -529,7 +599,8 @@ function mergeImportedSeed() {
       specialties: creatorSeed.rankings
         .filter((ranking) => ranking.creator_id === creator.creator_id)
         .map((ranking) => getCategory(normalizeCategorySlug(ranking.category_slug)).name),
-      displayFallback: `Curated foodie list ${index + 1}`
+      displayFallback: getReferenceDisplayFallback(creator.creator_id, creator.display_name),
+      disclosure: "Curated reference list; creator verification pending."
     });
   });
 
@@ -571,6 +642,90 @@ function mergeImportedSeed() {
       }
     ];
     if (!place.description && row.placeDetailSummaryFromUpload) place.description = row.placeDetailSummaryFromUpload;
+  });
+
+  (IMPORTED_SEED.creatorReferenceRows || []).forEach((row) => {
+    const creatorId = row.creatorSlug;
+    const category = normalizeCategorySlug(row.categorySlug);
+    addCategoryIfMissing(category, titleCaseSlug(category));
+    const existingCreator = getCreator(creatorId);
+    const specialty = getCategory(category).name;
+    if (existingCreator) {
+      existingCreator.displayFallback = getReferenceDisplayFallback(creatorId, row.creatorDisplayName);
+      existingCreator.disclosure = "Curated reference list; creator verification pending.";
+      existingCreator.bio = "Curated reference profile based on a user-provided ranking sheet. Creator verification is pending.";
+      existingCreator.specialties = unique([...(existingCreator.specialties || []), specialty]);
+    } else {
+      creators.push({
+        slug: creatorId,
+        displayName: row.creatorDisplayName,
+        handle: "",
+        city: "Seattle",
+        bio: "Curated reference profile based on a user-provided ranking sheet. Creator verification is pending.",
+        optInStatus: "not_verified_user_uploaded_data",
+        publicAttributionEnabled: false,
+        specialties: [specialty],
+        displayFallback: getReferenceDisplayFallback(creatorId, row.creatorDisplayName),
+        disclosure: "Curated reference list; creator verification pending."
+      });
+    }
+
+    const placeId = resolveReferencePlaceId(row);
+    let place = getPlace(placeId);
+    const tags = inferReferenceTags(row);
+    if (!place) {
+      place = {
+        id: placeId,
+        name: row.placeName,
+        city: "seattle",
+        category,
+        categorySlugs: [category],
+        neighborhood: row.seedDetails?.split(".")[0]?.replace(/\(.+?\)/g, "").trim() || "Seattle",
+        description: row.seedDetails || "Creator-reference seed place.",
+        why: row.sourceFeedbackSummary || "Appears in a curated Local Five reference list.",
+        tags,
+        knownFor: tags.filter((tag) => tag !== category).slice(0, 4),
+        styleTags: tags,
+        textureTags: tags.filter((tag) => /(crisp|crunch|airy|flaky|buttery|juicy|crust)/.test(tag)),
+        vibeTags: tags.filter((tag) => /(classic|hidden|late|creator|institution|neighborhood)/.test(tag)),
+        bestFor: tags.slice(0, 3),
+        creatorMentionedBy: [],
+        creatorSignals: [],
+        officialUrl: "",
+        mapUrl: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(`${row.placeName} Seattle, WA`)}`,
+        sourceName: "creator_reference_seed",
+        sourceUrl: "",
+        verificationStatus: "needs_creator_source_and_places_verification",
+        safeToPublishCopy: "yes",
+        isImported: true
+      };
+      places.push(place);
+    }
+
+    place.categorySlugs = unique([...(place.categorySlugs || [place.category]), category]);
+    place.tags = unique([...(place.tags || []), ...tags]);
+    place.knownFor = unique([...(place.knownFor || []), ...tags.filter((tag) => tag !== category)]).slice(0, 6);
+    place.styleTags = unique([...(place.styleTags || []), ...tags]);
+    place.textureTags = unique([...(place.textureTags || []), ...tags.filter((tag) => /(crisp|crunch|airy|flaky|buttery|juicy|crust)/.test(tag))]);
+    place.vibeTags = unique([...(place.vibeTags || []), ...tags.filter((tag) => /(classic|hidden|late|creator|institution|neighborhood)/.test(tag))]);
+    place.bestFor = unique([...(place.bestFor || []), ...tags.slice(0, 3)]);
+    place.creatorMentionedBy = unique([...(place.creatorMentionedBy || []), creatorId]);
+    if (!place.description || place.description === "Imported creator-ranking seed place.") place.description = row.seedDetails || place.description;
+    if (!place.why || place.why === "Appears in an imported Local Five creator comparison seed.") place.why = row.sourceFeedbackSummary || place.why;
+    const signalKey = `${creatorId}|${category}|${row.rankStatus}`;
+    const existingSignal = (place.creatorSignals || []).some((signal) => `${signal.creatorId}|${signal.category}|${signal.rankStatus}` === signalKey);
+    if (!existingSignal) {
+      place.creatorSignals = [
+        ...(place.creatorSignals || []),
+        {
+          creatorId,
+          category,
+          rankPosition: parseRankPosition(row.rankStatus),
+          rankStatus: row.rankStatus,
+          summary: row.sourceFeedbackSummary
+        }
+      ];
+    }
   });
 }
 
@@ -922,7 +1077,12 @@ function getSubmissionStats(submission) {
 }
 
 function getTasteTwin(submission) {
-  const candidates = seedRankings.filter((item) => item.category === submission.category && item.id !== submission.id);
+  const referenceCandidates = seedRankings.filter(
+    (item) => item.category === submission.category && item.id !== submission.id && item.creatorSlug && item.creatorSlug !== "admin" && !item.creatorSlug.startsWith("sample-")
+  );
+  const candidates = referenceCandidates.length
+    ? referenceCandidates
+    : seedRankings.filter((item) => item.category === submission.category && item.id !== submission.id);
   const userIds = submission.placeIds.map(resolvePlaceId);
   let best = null;
   candidates.forEach((candidate) => {
@@ -940,6 +1100,7 @@ function getCreatorMatches(submission) {
   const bestByCreator = new Map();
   seedRankings
     .filter((ranking) => ranking.creatorSlug && ranking.creatorSlug !== "admin")
+    .filter((ranking) => !ranking.creatorSlug.startsWith("sample-"))
     .filter((ranking) => ranking.category === normalizeCategorySlug(submission.category))
     .forEach((ranking) => {
       const creatorIds = ranking.placeIds.map(resolvePlaceId);
@@ -968,6 +1129,7 @@ function getCreatorConsensusPicks(categorySlug) {
   const counts = new Map();
   seedRankings
     .filter((ranking) => ranking.creatorSlug && ranking.creatorSlug !== "admin")
+    .filter((ranking) => !ranking.creatorSlug.startsWith("sample-"))
     .filter((ranking) => ranking.category === normalizeCategorySlug(categorySlug))
     .forEach((ranking) => {
       ranking.placeIds.map(resolvePlaceId).forEach((placeId, index) => {
@@ -990,40 +1152,74 @@ function getCreatorConsensusMiss(submission) {
 
 function getTasteVerdict(submission, stats, tone = loadStore().tone || "spicy") {
   const category = getCategory(submission.category);
+  const selected = submission.placeIds.map(getPlace).filter(Boolean);
+  const neighborhoodCounts = countBy(selected.map((place) => place.neighborhood));
+  const maxNeighborhoodCount = Math.max(0, ...Object.values(neighborhoodCounts));
+  const chainishCount = selected.filter((place) => /multiple|drive-in|market/i.test(`${place.neighborhood} ${(place.tags || []).join(" ")}`)).length;
   const creatorMissPlace = stats.creatorConsensusMiss ? getPlace(stats.creatorConsensusMiss.placeId) : null;
-  const boldest = stats.boldest?.place;
-  const safePicks = stats.overlap >= 4;
+  const creatorTwin = stats.twin?.creatorSlug ? getCreator(stats.twin.creatorSlug) : null;
+  const boldGap = stats.boldest?.boldGap || 0;
   const chaos = Math.max(0, 100 - stats.score);
 
-  let title = "Respectably Debatable";
-  let roast = `Your ${category.name.toLowerCase()} list has enough consensus to be useful and enough personality to start one group chat argument.`;
-  let badges = ["Useful list", "Some debate"];
+  let title = "Reasonable Menace";
+  let roast = "Just enough consensus to seem credible. Just enough chaos to start a group chat fight.";
+  let compliment = "This is exactly the kind of list the app was built for.";
+  let badges = ["Debatable", "Shareable"];
   let shareLine = `I ranked Seattle ${category.name.toLowerCase()} and survived the Local Five verdict.`;
 
-  if (safePicks) {
-    title = "Suspiciously Correct";
-    roast = "You matched the city a little too well. This is either excellent taste or you built this list by asking five people already standing in line.";
+  if (creatorTwin && stats.twin.overlap >= 3) {
+    const creatorName = getPublicCreatorName(creatorTwin).replace(" reference list", "");
+    title = "Creator Adjacent";
+    roast = `You matched ${creatorName} hard enough that we may need to check your notes app.`;
+    compliment = "Honestly, this is a very defensible list.";
+    badges = ["Reference match", "Creator overlap"];
+    shareLine = `My Seattle ${category.name.toLowerCase()} list is ${creatorName} adjacent.`;
+  } else if (boldGap >= 8) {
+    title = "Underrated Hunter";
+    roast = `Your #${stats.boldest.userRank} is Seattle's #${stats.boldest.cityRank}. Brave. Possibly genius. Possibly lunch regret.`;
+    compliment = "At least your list has a point of view.";
+    badges = ["Deep cut", "High conviction"];
+    shareLine = `I ranked Seattle ${category.name.toLowerCase()} and got Underrated Hunter.`;
+  } else if (maxNeighborhoodCount >= 3) {
+    title = "Neighborhood Loyalist";
+    roast = "This list has a zip code bias. Cute, but suspicious.";
+    compliment = "You know your corner of Seattle very well.";
+    badges = ["Neighborhood bias", "Local lane"];
+    shareLine = `My Seattle ${category.name.toLowerCase()} list has neighborhood loyalty.`;
+  } else if (stats.overlap >= 4) {
+    title = "Consensus Camper";
+    roast = "You picked like someone who reads every Best Of list and calls it research.";
+    compliment = "Annoyingly, Seattle mostly agrees with you.";
     badges = ["City-approved", "Low chaos", "Safe but solid"];
-    shareLine = `I ranked Seattle ${category.name.toLowerCase()} and apparently I am annoyingly reasonable.`;
+    shareLine = `I ranked Seattle ${category.name.toLowerCase()} and got Consensus Camper.`;
   } else if (stats.overlap <= 1) {
-    title = "Food Court Defendant";
-    roast = "Your list disagrees with Seattle and probably at least one person currently yelling in a comment section. It is not boring, though.";
+    title = "Chaos Agent";
+    roast = "Seattle disagrees with you loudly. Honestly, respect.";
+    compliment = "Your list is not boring, and that counts for something.";
     badges = ["Chaos pick", "Contrarian", "Argument starter"];
-    shareLine = `I ranked Seattle ${category.name.toLowerCase()} and the city may need to intervene.`;
+    shareLine = `I ranked Seattle ${category.name.toLowerCase()} and got Chaos Agent.`;
+  } else if (stats.overlap >= 3 && stats.creatorMatches[0]?.overlap) {
+    title = "Local Legend";
+    roast = "You are not just following the line. You may actually eat outside your neighborhood.";
+    compliment = "Seattle agrees enough to make this credible, and the reference lists do not hate it.";
+    badges = ["Local read", "Not boring"];
+    shareLine = `My Seattle ${category.name.toLowerCase()} list got Local Legend.`;
   } else if (creatorMissPlace) {
-    title = "Creator Consensus Violation";
+    title = "Reference Pick Dodger";
     roast = `Skipping ${creatorMissPlace.name} is a choice. Not necessarily a good one, but definitely a choice.`;
-    badges = ["Missed foodie pick", "Bold omission"];
-    shareLine = `I skipped a Local Five foodie favorite and lived to tell the tale.`;
-  } else if (boldest && stats.boldest.cityRank >= 10) {
-    title = "Brave, Possibly Wrong";
-    roast = `Putting ${boldest.name} at #${stats.boldest.userRank} while the city has it at #${stats.boldest.cityRank} is the kind of confidence this app was built to document.`;
-    badges = ["Bold take", "High conviction"];
-    shareLine = `My Local Five list contains one deeply documented food opinion.`;
+    compliment = "Bold omissions are still useful data.";
+    badges = ["Missed reference pick", "Bold omission"];
+    shareLine = `I skipped a Local Five reference favorite and lived to tell the tale.`;
+  } else if (chainishCount >= 2) {
+    title = "Comfort Zone Captain";
+    roast = "This list says you value predictability, parking, and avoiding emotional risk.";
+    compliment = "There is nothing wrong with knowing what works.";
+    badges = ["Reliable", "Low risk"];
+    shareLine = `My Seattle ${category.name.toLowerCase()} list got Comfort Zone Captain.`;
   }
 
   if (tone === "mild") {
-    roast = roast.replace("wrong", "debatable").replace("intervene", "discuss this").replace("Food Court Defendant", "Independent Thinker");
+    roast = roast.replace("loudly", "politely").replace("lunch regret", "lunch debate").replace("emotional risk", "menu risk");
   }
 
   if (tone === "unhinged_safe") {
@@ -1031,50 +1227,80 @@ function getTasteVerdict(submission, stats, tone = loadStore().tone || "spicy") 
     badges = [...badges, "Drama seasoning"];
   }
 
-  return { title, roast, scoreLabel: "Chaos score", scoreValue: chaos, badges, shareLine, tone };
+  return { title, roast, compliment, scoreLabel: "Chaos score", scoreValue: chaos, badges, shareLine, tone };
 }
 
 function getRecommendations(submission, stats) {
   const selectedIds = new Set(submission.placeIds.map(resolvePlaceId));
   const selectedPlaces = submission.placeIds.map(getPlace).filter(Boolean);
-  const selectedTags = new Set(
-    selectedPlaces.flatMap((place) => [
-      ...(place.tags || []),
-      ...(place.styleTags || []),
-      ...(place.textureTags || []),
-      ...(place.vibeTags || [])
-    ])
-  );
-  const selectedNeighborhoods = new Set(selectedPlaces.map((place) => place.neighborhood).filter(Boolean));
+  const tagWeights = new Map();
+  selectedPlaces.forEach((place, index) => {
+    const rankWeight = 5 - index;
+    unique([...(place.tags || []), ...(place.knownFor || []), ...(place.styleTags || []), ...(place.textureTags || []), ...(place.vibeTags || [])]).forEach((tag) => {
+      tagWeights.set(tag, (tagWeights.get(tag) || 0) + rankWeight);
+    });
+  });
+  const neighborhoodCounts = countBy(selectedPlaces.map((place) => place.neighborhood));
+  const selectedCreators = new Set(selectedPlaces.flatMap((place) => place.creatorMentionedBy || []));
   const consensusRanks = new Map(stats.consensus.map((item) => [item.place.id, item.cityRank]));
 
-  return getPlacesFor(submission.category)
+  const sameCategory = getPlacesFor(submission.category);
+  const adjacent = places
+    .filter((place) => place.city === "seattle")
+    .filter((place) => place.verificationStatus !== "exclude_closed")
+    .filter((place) => place.safeToPublishCopy !== "needs_review")
+    .filter((place) => !sameCategory.some((item) => item.id === place.id));
+
+  return [...sameCategory, ...adjacent]
     .filter((place) => !selectedIds.has(place.id))
     .map((place) => {
-      const placeTags = unique([...(place.tags || []), ...(place.styleTags || []), ...(place.textureTags || []), ...(place.vibeTags || [])]);
-      const shared = placeTags.filter((tag) => selectedTags.has(tag));
-      const creatorConsensusBonus = (place.creatorMentionedBy || []).length >= 2 ? 2 : 0;
-      const neighborhoodDiversityBonus = selectedNeighborhoods.has(place.neighborhood) ? 0 : 0.5;
-      const cityPopularityBonus = consensusRanks.has(place.id) ? Math.max(0.2, (8 - consensusRanks.get(place.id)) / 10) : 0;
-      const score = 4 + shared.length * 1.6 + creatorConsensusBonus + neighborhoodDiversityBonus + cityPopularityBonus;
+      const placeTags = unique([...(place.tags || []), ...(place.knownFor || []), ...(place.styleTags || []), ...(place.textureTags || []), ...(place.vibeTags || [])]);
+      const shared = placeTags.filter((tag) => tagWeights.has(tag));
+      const sameCategoryBonus = (place.categorySlugs || [place.category]).includes(normalizeCategorySlug(submission.category)) ? 8 : 1.5;
+      const weightedTagScore = shared.reduce((total, tag) => total + Math.min(tagWeights.get(tag), 7), 0);
+      const creatorOverlap = (place.creatorMentionedBy || []).some((creatorId) => selectedCreators.has(creatorId));
+      const creatorConsensusBonus = (place.creatorMentionedBy || []).length >= 2 ? 4 : 0;
+      const creatorOverlapBonus = creatorOverlap ? 3 : 0;
+      const neighborhoodBonus = neighborhoodCounts[place.neighborhood] ? 2.5 : 0.5;
+      const cityPopularityBonus = consensusRanks.has(place.id) ? Math.max(0.5, (8 - consensusRanks.get(place.id)) / 2) : 0;
+      const score = sameCategoryBonus + weightedTagScore + creatorConsensusBonus + creatorOverlapBonus + neighborhoodBonus + cityPopularityBonus;
       return {
         place,
         score,
         shared,
-        reason: recommendationReason(place, selectedPlaces, shared, creatorConsensusBonus)
+        reasons: unique([
+          ...shared,
+          creatorConsensusBonus ? "creator consensus" : "",
+          creatorOverlapBonus ? "creator overlap" : "",
+          neighborhoodCounts[place.neighborhood] ? `${place.neighborhood} pattern` : ""
+        ]),
+        reason: recommendationReason(place, selectedPlaces, shared, creatorConsensusBonus, creatorOverlapBonus)
       };
     })
+    .filter((item) => item.score > 0)
     .sort((a, b) => b.score - a.score)
-    .slice(0, 5);
+    .slice(0, 3);
 }
 
-function recommendationReason(place, selectedPlaces, shared, creatorConsensusBonus) {
+function recommendationReason(place, selectedPlaces, shared, creatorConsensusBonus, creatorOverlapBonus = 0) {
   const anchors = selectedPlaces.slice(0, 2).map((item) => item.name).join(" and ");
+  if (creatorConsensusBonus) {
+    return `${place.name} shows up across creator/reference lists, so it is a strong next stop for your taste profile.`;
+  }
+  if (creatorOverlapBonus) {
+    return `${place.name} has overlap with the same reference list patterns as your picks.`;
+  }
+  if (shared.includes("ny-style") || shared.includes("slice")) {
+    return `You seem to like crisp, slice-shop energy. ${place.name} fits that lane.`;
+  }
+  if (shared.includes("smash-burger")) {
+    return `Your list leans smash-burger. ${place.name} keeps that same crispy-edge energy.`;
+  }
+  if (shared.includes("crunchy") || shared.includes("crisp-crust")) {
+    return `Your picks care about texture. ${place.name} keeps the crunch conversation going.`;
+  }
   if (shared.length) {
     return `Because you picked ${anchors}, you seem to like ${shared.slice(0, 3).map(titleCaseSlug).join(", ")}. ${place.name} fits that lane.`;
-  }
-  if (creatorConsensusBonus) {
-    return `${place.name} has creator-overlap energy, which makes it the next logical argument.`;
   }
   return `${place.name} gives your list a different neighborhood and a new data point for the next debate.`;
 }
@@ -1151,7 +1377,7 @@ function shell(mainHtml, options = {}) {
         </a>
         <nav class="top-actions" aria-label="Primary">
           <a class="ghost-button" href="/seattle" data-link>Seattle</a>
-          <a class="ghost-button" href="/creator/sample-maya" data-link>Creators</a>
+          <a class="ghost-button" href="/creator/matthew-norman" data-link>Creators</a>
           ${owner ? `<a class="ghost-button" href="/admin" data-link>Admin</a>` : ""}
           <a class="ghost-button account-nav" href="/account" data-link>${escapeHtml(accountLabel)}</a>
           <a class="primary-button" href="/seattle/pizza" data-link>${options.cta || "Play Pizza"}</a>
@@ -1165,7 +1391,7 @@ function shell(mainHtml, options = {}) {
 function renderHome() {
   setMeta(
     "Local Five | Rank your city's Top 5 food spots",
-    "Pick your favorites, get roasted, compare with local foodies, and discover where to eat next."
+    "Pick your favorites, get roasted, compare with local creator lists, and discover where to eat next."
   );
   const featured = getCategory("pizza");
   shell(`
@@ -1175,7 +1401,7 @@ function renderHome() {
           <div class="hero-copy">
             <p class="eyebrow">Seattle beta</p>
             <h1>Rank your city's Top 5 food spots.</h1>
-            <p>Pick your favorites, get roasted, compare with local foodie lists, and discover where to eat next.</p>
+            <p>Pick your favorites, get roasted, compare with local creator lists, and discover where to eat next.</p>
             <div class="hero-actions">
               <a class="primary-button" href="/seattle/pizza" data-link>Play Seattle Pizza</a>
               <a class="ghost-link" href="/seattle" data-link>Explore Seattle rankings</a>
@@ -1254,7 +1480,12 @@ function renderCityHub() {
           <p class="eyebrow">Creator lists</p>
           <h2>Compare your taste</h2>
           <div class="creator-stack">
-            ${creators.map(creatorCard).join("")}
+            ${(creators.filter((creator) => !creator.slug.startsWith("sample-")).length
+              ? creators.filter((creator) => !creator.slug.startsWith("sample-"))
+              : creators
+            )
+              .map(creatorCard)
+              .join("")}
           </div>
         </div>
         <div class="info-panel">
@@ -1269,6 +1500,8 @@ function renderCityHub() {
 
 function renderCategoryPage(categorySlug) {
   const category = getCategory(categorySlug);
+  const placeCount = getPlacesFor(category.slug).length;
+  const categoryStatus = placeCount < 8 ? "Mini list beta" : "Open ranking";
   setMeta(
     `Seattle's Best ${category.name}, Ranked by Locals | Local Five`,
     `Make your Top 5 ${category.name.toLowerCase()} spots in Seattle and see if the city agrees.`
@@ -1280,7 +1513,13 @@ function renderCategoryPage(categorySlug) {
           <div>
             <p class="eyebrow">Seattle food challenge</p>
             <h1>Seattle's Best ${escapeHtml(category.name)}</h1>
-            <p>Make your Top 5. Then get roasted, compare with local foodie lists, and find your next spot.</p>
+            <p>Make your Top 5. Then get roasted, compare with local creator lists, and find your next spot.</p>
+            <div class="tag-row challenge-badges">
+              <span>No login required</span>
+              <span>30 seconds</span>
+              <span>Get recommendations</span>
+              <span>${escapeHtml(categoryStatus)}</span>
+            </div>
           </div>
           <div class="prompt-stat">
             <strong>${getSubmissionsFor(category.slug).length}</strong>
@@ -1359,6 +1598,7 @@ function renderRankPage(submissionId) {
             <p class="eyebrow">Taste verdict</p>
             <h1>${escapeHtml(verdict.title)}</h1>
             <p>${escapeHtml(verdict.roast)}</p>
+            <p>${escapeHtml(verdict.compliment || "")}</p>
             <div class="tag-row verdict-badges">
               ${verdict.badges.map((badge) => `<span>${escapeHtml(badge)}</span>`).join("")}
             </div>
@@ -1366,7 +1606,7 @@ function renderRankPage(submissionId) {
             <div class="score-grid">
               <div><strong>${stats.score}%</strong><span>taste score</span></div>
               <div><strong>${verdict.scoreValue}%</strong><span>${escapeHtml(verdict.scoreLabel)}</span></div>
-              <div><strong>${stats.creatorMatches[0]?.overlap || 0}/5</strong><span>foodie match</span></div>
+              <div><strong>${stats.creatorMatches[0]?.overlap || 0}/5</strong><span>reference match</span></div>
             </div>
             <div class="result-actions">
               <button class="primary-button" type="button" data-action="copy-share" data-submission-id="${submission.id}">Copy share link</button>
@@ -1389,8 +1629,8 @@ function renderRankPage(submissionId) {
           ${leaderboardPreview(category.slug, submission.id)}
         </div>
         <div class="info-panel">
-          <p class="eyebrow">Creator match</p>
-          <h2>Foodie comparison</h2>
+          <p class="eyebrow">Reference match</p>
+          <h2>Reference comparison</h2>
           ${creatorMatchPanel(stats)}
         </div>
       </section>
@@ -1425,11 +1665,11 @@ function renderRankPage(submissionId) {
 }
 
 function renderCreatorPage(creatorSlug) {
-  const creator = getCreator(creatorSlug) || creators[0];
+  const creator = getCreator(creatorSlug) || getCreator("matthew-norman") || creators[0];
   const creatorRankings = seedRankings.filter((ranking) => ranking.creatorSlug === creator.slug);
   const publicName = getPublicCreatorName(creator);
   const attributionLine =
-    creator.publicAttributionEnabled || SHOW_UNVERIFIED_CREATOR_NAMES ? creator.handle : "Attribution hidden until verified";
+    creator.publicAttributionEnabled || SHOW_UNVERIFIED_CREATOR_NAMES ? creator.handle : "Creator verification pending";
   setMeta(`${publicName} on Local Five`, `Compare your taste with a Local Five seed ranking.`);
   shell(`
     <main>
@@ -1440,8 +1680,12 @@ function renderCreatorPage(creatorSlug) {
             <p class="eyebrow">Seed comparison profile</p>
             <h1>${escapeHtml(publicName)}</h1>
             <p>${escapeHtml(attributionLine)} · ${escapeHtml(creator.city)}</p>
-            <p>${escapeHtml(creator.bio)}</p>
-            <span class="notice-pill">Seed data, not an endorsement</span>
+            <p>${escapeHtml(creator.bio || "Curated reference profile based on a user-provided ranking sheet. Creator verification is pending.")}</p>
+            <div class="tag-row">
+              <span class="notice-pill">Curated reference</span>
+              <span class="notice-pill">Verification pending</span>
+              <a class="ghost-link compact-link" href="mailto:${CONFIG.ownerEmail}?subject=Local%20Five%20creator%20profile%20claim">Claim or update</a>
+            </div>
           </div>
         </div>
       </section>
@@ -1460,6 +1704,7 @@ function renderCreatorPage(creatorSlug) {
                 <a class="category-card" href="/seattle/${category.slug}" data-link style="--accent: ${category.accent}">
                   <span>${escapeHtml(category.name)}</span>
                   <h3>${escapeHtml(publicName)} Top 5</h3>
+                  <p class="disclosure-copy">Curated reference list; not an endorsement until verified.</p>
                   <p>${ranking.placeIds
                     .slice(0, 3)
                     .map((placeId) => getPlace(placeId)?.name)
@@ -1736,6 +1981,11 @@ function renderAdmin() {
             }
           </div>
         </div>
+        <div class="info-panel">
+          <p class="eyebrow">Data quality</p>
+          <h2>Launch checks</h2>
+          ${dataQualityPreview()}
+        </div>
       </div>
     </main>
   `);
@@ -1780,7 +2030,7 @@ function creatorCard(creator) {
 }
 
 function placeSearchCard(place, categorySlug, disabled) {
-  const tags = unique([...(place.tags || []), ...(place.creatorMentionedBy || []).map((creatorId) => getCreatorBadgeLabel(creatorId))]).slice(0, 4);
+  const tags = unique([...(place.knownFor || []), ...(place.tags || []), ...(place.creatorMentionedBy || []).map((creatorId) => getCreatorBadgeLabel(creatorId))]).slice(0, 4);
   return `
     <article class="place-card compact">
       <div class="place-card-main">
@@ -1845,9 +2095,10 @@ function renderEditor(categorySlug) {
                     <span class="rank-number">${index + 1}</span>
                     <span class="rank-copy">
                       <strong>${escapeHtml(place.name)}</strong>
-                      <small>${escapeHtml(place.neighborhood)}</small>
+                      <small>${escapeHtml(place.neighborhood)}${(place.knownFor || place.tags || [])[0] ? ` · ${escapeHtml(titleCaseSlug((place.knownFor || place.tags)[0]))}` : ""}</small>
                     </span>
                     <span class="rank-controls">
+                      <a href="${routeForPlace(place.id)}" data-link>Details</a>
                       <button type="button" data-action="move-up" data-category="${categorySlug}" data-place-id="${place.id}" ${
                         index === 0 ? "disabled" : ""
                       }>Up</button>
@@ -1884,7 +2135,7 @@ function renderEditor(categorySlug) {
     <button class="primary-button submit-ranking" type="button" data-action="submit-ranking" data-category="${categorySlug}" ${
       canSubmit ? "" : "disabled"
     }>
-      Submit my Top 5
+      Judge my taste
     </button>
   `;
 }
@@ -1970,7 +2221,7 @@ function toneToggle(activeTone, submissionId) {
 
 function creatorMatchPanel(stats) {
   if (!stats.creatorMatches.length) {
-    return `<div class="empty-state"><strong>No creator overlap yet.</strong><span>Your list is doing its own thing.</span></div>`;
+    return `<div class="empty-state"><strong>No reference overlap yet.</strong><span>Your list is doing its own thing.</span></div>`;
   }
 
   return `
@@ -1986,7 +2237,7 @@ function creatorMatchPanel(stats) {
           return `
             <div>
               <strong>${escapeHtml(creatorName)}: ${match.overlap}/5 match</strong>
-              <span>${escapeHtml(overlapNames || "No exact overlap")} · seed data, not an endorsement</span>
+              <span>${escapeHtml(overlapNames || "No exact overlap")} · reference data, verification pending</span>
             </div>
           `;
         })
@@ -2013,7 +2264,10 @@ function recommendationsPanel(recommendations) {
           </div>
           <p>${escapeHtml(reason)}</p>
           <div class="tag-row">${(place.tags || []).slice(0, 3).map((tag) => `<span>${escapeHtml(titleCaseSlug(tag))}</span>`).join("")}</div>
-          <a class="ghost-link compact-link" href="${routeForPlace(place.id)}" data-link>Details</a>
+          <div class="place-link-row">
+            <a class="ghost-link compact-link" href="${routeForPlace(place.id)}" data-link>Details</a>
+            ${place.mapUrl ? `<a class="ghost-link compact-link" href="${escapeHtml(place.mapUrl)}" target="_blank" rel="noreferrer">Map</a>` : ""}
+          </div>
         </article>
       `
     )
@@ -2077,6 +2331,30 @@ function controversyPreview() {
   `;
 }
 
+function dataQualityPreview() {
+  const checks = [
+    ["Missing descriptions", places.filter((place) => !place.description || place.description.includes("launch testing")).length],
+    ["Missing map links", places.filter((place) => !place.mapUrl).length],
+    ["Missing attributes", places.filter((place) => !unique([...(place.tags || []), ...(place.knownFor || []), ...(place.styleTags || [])]).length).length],
+    ["Creator verification pending", creators.filter((creator) => !creator.publicAttributionEnabled && creator.optInStatus !== "mock").length],
+    ["Needs review", places.filter((place) => place.safeToPublishCopy === "needs_review").length]
+  ];
+  return `
+    <div class="table-list">
+      ${checks
+        .map(
+          ([label, count]) => `
+            <div>
+              <strong>${count}</strong>
+              <span>${escapeHtml(label)}</span>
+            </div>
+          `
+        )
+        .join("")}
+    </div>
+  `;
+}
+
 function methodologyNote() {
   return `
     <div class="method-card">
@@ -2119,15 +2397,16 @@ function tasteTwinTitle(twin) {
 function tasteTwinSentence(twin) {
   const creator = getCreator(twin?.creatorSlug);
   const label = creator ? getPublicCreatorName(creator) : "a sample city list";
-  return `You matched ${twin?.overlap || 0}/5 with ${label}. This is seed comparison data, not an endorsement.`;
+  return `You matched ${twin?.overlap || 0}/5 with ${label}. This is reference comparison data with verification pending.`;
 }
 
 function getShareText(submission) {
   const category = getCategory(submission.category);
+  const verdict = getTasteVerdict(submission, getSubmissionStats(submission));
   const picks = submission.placeIds
     .map((placeId, index) => `${index + 1}. ${getPlace(placeId)?.name || "Unknown place"}`)
     .join("\n");
-  return `I ranked my Top 5 ${category.name} spots in Seattle.\n${picks}\nSee if your list matches mine: ${shareUrlFor(submission)}`;
+  return `${verdict.shareLine}\n\nMy Top 5 ${category.name}:\n${picks}\n\nMake yours: ${shareUrlFor(submission)}`;
 }
 
 async function copyText(text, message) {

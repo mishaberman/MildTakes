@@ -589,7 +589,11 @@ h3 {
   gap: 6px;
 }
 
-.rank-controls button {
+.rank-controls button,
+.rank-controls a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-height: 34px;
   padding: 0 8px;
   border: 2px solid var(--line);
@@ -598,6 +602,7 @@ h3 {
   color: var(--ink);
   font-size: 0.78rem;
   font-weight: 900;
+  text-decoration: none;
 }
 
 .search-box {
@@ -700,6 +705,14 @@ textarea:focus-visible {
   display: flex;
   flex-wrap: wrap;
   gap: 7px;
+}
+
+.challenge-badges {
+  margin-top: 14px;
+}
+
+.disclosure-copy {
+  font-size: 0.9rem;
 }
 
 .tag-row span,
@@ -1289,7 +1302,7 @@ textarea:focus-visible {
   .rank-controls {
     grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
 
   .place-result {
